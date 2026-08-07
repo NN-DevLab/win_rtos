@@ -15,6 +15,26 @@ NetX Duo・FileX・GUIXを組み合わせた、PNG画像のダウンロード&�
 
 詳細は[要件定義](docs/requirements.md)を参照してください。
 
+## 実行ファイル
+
+| exe | 内容 |
+|---|---|
+| `win_rtos.exe` | ThreadXのみの最小構成。`main_thread`が定期的にログを出す |
+| `win_rtos_poc.exe` | NetX Duo・FileX・GUIXを導入できるかを確認するPOC |
+
+### win_rtos_poc.exe について
+
+NetX Duo・FileX・GUIXを一通り組み込めるかを確認するための検証用アプリです。
+
+- **NetX Duo**: 2つのループバックIPインスタンス間でUDPパケットを送受信
+- **FileX**: 実ファイル(`win_rtos_poc_disk.dat`)にバックする自作ドライバ([port/win32/filex/fx_win32_file_driver.c](port/win32/filex/fx_win32_file_driver.c))を使用。起動回数をカウントして書き込み、**アプリを再起動しても値が残る**ことを確認済み
+- **GUIX**: ウィンドウにNetXの送受信数とFileXの起動回数カウンタを表示
+
+実行すると、実行ディレクトリに以下の2ファイルが作られる。
+
+- `win_rtos_poc_disk.dat` — FileXのディスクイメージ本体(削除すると次回起動時に再フォーマットされる)
+- `win_rtos_poc.log` — 実行ログ(GUIサブシステムのためコンソールが無く、代わりにファイルへ出力している。実行のたびに上書きされる)
+
 ## ビルド・実行方法(VSCode)
 
 **前提**
@@ -27,15 +47,19 @@ NetX Duo・FileX・GUIXを組み合わせた、PNG画像のダウンロード&�
 **手順**
 
 1. このフォルダをVSCodeで開く
-2. `repos/` にThreadXをclone(未取得の場合)
+2. `repos/` に必要なリポジトリをclone(未取得の場合)
    ```bash
    git clone https://github.com/eclipse-threadx/threadx.git repos/threadx
+   git clone https://github.com/eclipse-threadx/netxduo.git repos/netxduo
+   git clone https://github.com/eclipse-threadx/filex.git repos/filex
+   git clone https://github.com/eclipse-threadx/guix.git repos/guix
    ```
+   (`win_rtos.exe` だけなら threadx のみで良い)
 3. ステータスバーの **「Select a Kit」** をクリックし、`Visual Studio Community 20xx Release - x86`(または `amd64_x86`)を選択
    - 表示されない場合は、コマンドパレット(`Ctrl+Shift+P`)から `CMake: Select a Kit` を実行する
    - それでも一覧に出てこない場合は `CMake: Scan for Kits` を試す
 4. Kit選択後、自動的にconfigureが走る(初回は数十秒かかる)
-5. ステータスバーの **▶(Run)** ボタンを押すと `win_rtos.exe` がビルド・実行され、統合ターミナルにログが表示される
+5. ステータスバーの **「Select a Build Target」** で `win_rtos` または `win_rtos_poc` を選び、**▶(Run)** ボタンを押すとビルド・実行される。`win_rtos.exe` はそのまま統合ターミナルにログが表示される
    ```
    main start
    main_thread is 00A3F800

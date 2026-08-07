@@ -21,3 +21,40 @@ add_executable(win_rtos
 target_link_libraries(win_rtos
     threadx
 )
+
+# --- win_rtos_poc: NetX Duo + FileX + GUIX integration smoke test ---------
+
+# FileX has no ready CMake win32 port upstream; point it at our own
+# (adds fx_win32_file_driver.c, our file-backed persistence driver).
+set(FILEX_CUSTOM_PORT ${CMAKE_CURRENT_LIST_DIR}/port/win32/filex)
+add_subdirectory(
+    ${CMAKE_CURRENT_LIST_DIR}/repos/filex
+    ${CMAKE_BINARY_DIR}/filex
+)
+
+# NetX Duo's win32 port ships an empty CMakeLists.txt (no port-specific
+# sources needed), so the default add_subdirectory path works as-is.
+add_subdirectory(
+    ${CMAKE_CURRENT_LIST_DIR}/repos/netxduo
+    ${CMAKE_BINARY_DIR}/netxduo
+)
+
+# GUIX has no ready CMake win32 port either; point it at our own.
+set(GUIX_CUSTOM_PORT ${CMAKE_CURRENT_LIST_DIR}/port/win32/guix)
+add_subdirectory(
+    ${CMAKE_CURRENT_LIST_DIR}/repos/guix
+    ${CMAKE_BINARY_DIR}/guix
+)
+
+# WIN32 (GUI subsystem): GUIX's win32 port supplies its own WinMain, which
+# calls gx_main() (our main(), renamed by a macro in gx_port.h).
+add_executable(win_rtos_poc WIN32
+    app_poc/main.c
+)
+
+target_link_libraries(win_rtos_poc
+    threadx
+    filex
+    netxduo
+    guix
+)
