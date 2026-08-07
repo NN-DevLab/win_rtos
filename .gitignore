@@ -1,0 +1,23 @@
+# Build
+build/
+
+# CMake
+compile_commands.json
+
+# Binary
+*.exe
+*.obj
+*.pdb
+*.ilk
+
+# VSCode Cache
+.vscode/ipch/
+.vscode/*.db
+.vscode/*.opendb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ThreadX (cloned upstream repos)
+repos/
