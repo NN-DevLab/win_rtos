@@ -73,7 +73,12 @@ NetX Duo・FileXの2つはGUIXを使わないため通常のコンソールア�
    - 表示されない場合は、コマンドパレット(`Ctrl+Shift+P`)から `CMake: Select a Kit` を実行する
    - それでも一覧に出てこない場合は `CMake: Scan for Kits` を試す
 4. Kit選択後、自動的にconfigureが走る(初回は数十秒かかる)
-5. ステータスバーの **「Select a Build Target」** で `win_rtos` または `win_rtos_poc` を選び、**▶(Run)** ボタンを押すとビルド・実行される。`win_rtos.exe` はそのまま統合ターミナルにログが表示される
+5. ステータスバーの **「Select a Build Target」** で、以下のいずれかを選び、**▶(Run)** ボタンを押すとビルド・実行される
+   - `win_rtos`
+   - `win_rtos_poc`
+   - `win_rtos_sandbox_netx` / `win_rtos_sandbox_filex` / `win_rtos_sandbox_guix`
+
+   `win_rtos.exe` の場合、そのまま統合ターミナルにログが表示される
    ```
    main start
    main_thread is 00A3F800
@@ -91,6 +96,16 @@ cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=repos/threadx/cmake/win32.cmake
 cmake --build build
 build\win_rtos.exe
 ```
+
+特定のexeだけビルドしたい場合は `--target` を指定する。
+
+```bash
+cmake --build build --target win_rtos_sandbox_netx
+cmake --build build --target win_rtos_sandbox_filex
+cmake --build build --target win_rtos_sandbox_guix
+```
+
+(`--target` を省略すると、定義されている全exeがまとめてビルドされる)
 
 ## ドキュメント
 
