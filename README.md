@@ -3,15 +3,16 @@ Eclipse ThreadX公式Win32ポートを用いた、Windows向けアプリ開発�
 
 ## 狙い
 
-PNG画像のダウンロード&ビューアアプリを実際に開発することを通して、Eclipse ThreadXおよびそのエコシステム(NetX Duo・FileX・GUIX)についての理解を深める。
+画像合成アプリを実際に開発することを通して、Eclipse ThreadXおよびそのエコシステム(NetX Duo・FileX・GUIX)についての理解を深める。
 
 ## 概要
 
-NetX Duo・FileX・GUIXを組み合わせた、PNG画像のダウンロード&ビューアアプリです。
+NetX Duo・FileX・GUIXを組み合わせた、画像合成アプリです。ビューア機能と合成機能の2つを軸とする。
 
 - HTTPで指定サイトからPNG画像をダウンロード(NetX Duo + Npcapによる実通信)
 - ダウンロードしたPNGを永続化(FileX、アプリを再起動しても残る)
-- 保存済み画像の一覧をGUI上に表示し、タッチした画像をその場でデコードして表示(GUIX)
+- 保存済み画像の一覧をGUI上に表示し、タッチした画像をその場でデコードして表示(ビューア機能、GUIX)
+- 複数の画像を選択して横並びに合成し、名前を付けて保存(合成機能、GUIX)
 
 詳細は[要件定義](docs/requirements.md)を参照してください。
 
