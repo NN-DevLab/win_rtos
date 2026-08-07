@@ -4,6 +4,13 @@
 
 win_rtos上で、NetX Duo・FileX・GUIXを組み合わせた実用アプリを作り、Eclipse ThreadXエコシステムの実践的な使い方を検証する。
 
+## 制約条件
+
+以下は、方式設計で選び直す対象ではなく、プロジェクトの前提として既に決まっている事項。
+
+- **プラットフォーム**: Windows(Win32シミュレータ)
+- **採用RTOS/ライブラリ**: Eclipse ThreadX、NetX Duo、FileX、GUIX
+
 ## 機能要件
 
 | # | 内容 | 担当コンポーネント |
