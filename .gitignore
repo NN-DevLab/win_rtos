@@ -10,6 +10,10 @@ compile_commands.json
 *.pdb
 *.ilk
 
+# Sandbox/POC runtime output (FileX disk images, GUIX GUI-subsystem logs)
+*.log
+*.dat
+
 # VSCode Cache
 .vscode/ipch/
 .vscode/*.db

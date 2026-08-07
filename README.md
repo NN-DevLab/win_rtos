@@ -22,6 +22,9 @@ NetX Duo・FileX・GUIXを組み合わせた、画像合成アプリです。ビ
 |---|---|
 | `win_rtos.exe` | ThreadXのみの最小構成。`main_thread`が定期的にログを出す |
 | `win_rtos_poc.exe` | NetX Duo・FileX・GUIXを導入できるかを確認するPOC |
+| `win_rtos_sandbox_netx.exe` | NetX Duoのみ。APIの動きだけを見たい人向け |
+| `win_rtos_sandbox_filex.exe` | FileXのみ。APIの動きだけを見たい人向け |
+| `win_rtos_sandbox_guix.exe` | GUIXのみ。APIの動きだけを見たい人向け |
 
 ### win_rtos_poc.exe について
 
@@ -35,6 +38,16 @@ NetX Duo・FileX・GUIXを一通り組み込めるかを確認するための検
 
 - `win_rtos_poc_disk.dat` — FileXのディスクイメージ本体(削除すると次回起動時に再フォーマットされる)
 - `win_rtos_poc.log` — 実行ログ(GUIサブシステムのためコンソールが無く、代わりにファイルへ出力している。実行のたびに上書きされる)
+
+### サンドボックス(win_rtos_sandbox_*.exe)について
+
+「このライブラリのAPIが単体でどう動くか、シンプルに見たい」という人向けに、コンポーネントを1つだけ組み込んだ最小構成のexeを分けて用意している。win_rtos_pocのように複数コンポーネントを組み合わせず、それぞれ単独で動く。
+
+- **win_rtos_sandbox_netx.exe**: NetX Duoのみ。ループバックの2つのIPインスタンス間でUDP送受信し、APIの戻り値をそのままコンソールに出力する
+- **win_rtos_sandbox_filex.exe**: FileXのみ(標準のRAMドライバを使用、永続化はしない)。format → create → write → read → ディレクトリ一覧、という一連のAPI呼び出しをコンソールに出力する
+- **win_rtos_sandbox_guix.exe**: GUIXのみ。タイマーで更新されるプロンプトが載ったウィンドウを表示する
+
+NetX Duo・FileXの2つはGUIXを使わないため通常のコンソールアプリとしてビルドしており、`printf`の出力がそのままコンソールに表示される。GUIXのみ、GUIサブシステムのため`win_rtos_sandbox_guix.log`にログを出力する。
 
 ## ビルド・実行方法(VSCode)
 

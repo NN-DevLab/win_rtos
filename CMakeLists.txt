@@ -58,3 +58,33 @@ target_link_libraries(win_rtos_poc
     netxduo
     guix
 )
+
+# --- sandboxes: one component at a time, for looking at just its API ------
+
+add_executable(win_rtos_sandbox_netx
+    app_sandbox_netx/main.c
+)
+
+target_link_libraries(win_rtos_sandbox_netx
+    threadx
+    netxduo
+)
+
+add_executable(win_rtos_sandbox_filex
+    app_sandbox_filex/main.c
+)
+
+target_link_libraries(win_rtos_sandbox_filex
+    threadx
+    filex
+)
+
+# WIN32 (GUI subsystem): see the win_rtos_poc comment above for why.
+add_executable(win_rtos_sandbox_guix WIN32
+    app_sandbox_guix/main.c
+)
+
+target_link_libraries(win_rtos_sandbox_guix
+    threadx
+    guix
+)
