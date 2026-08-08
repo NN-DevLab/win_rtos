@@ -40,11 +40,13 @@ win_rtos上で、NetX Duo・FileX・GUIXを組み合わせた実用アプリを�
 - ランタイムPNGデコードAPI `gx_image_reader_png_decode(data, size, &pixelmap)` がGUIX標準ライブラリに存在する。ビルド時のGUIX Studioリソース変換に頼らず、任意のバイト列をその場でデコードできる。
 - NetX DuoにHTTPクライアントアドオン(`netxduo/addons/http`)、FTPクライアントアドオン(`netxduo/addons/ftp`)がある。
 - Npcapはインストール・稼働確認済み。
+- PNGエンコード(合成画像の保存用)はGUIXのランタイムライブラリには無いため、libpng(+ zlib)を別途組み込む。詳細は[ADR-0003](decisions/0003-libpng-for-png-encoding.md)を参照。
 
 ## 前提条件・未解決事項
 
 - ビルドにはNpcap SDK(`pcap.h` / `wpcap.lib` / `Packet.lib`)が別途必要。手元にあるか未確認。
 - 通信相手はWindows PCを想定する。標準機能(IIS)でFTP・HTTPの両方をまかなえるが、初期状態では無効になっており、「Windowsの機能の有効化または無効化」からFTPサイト・既定のWebサイトを有効にしておく必要がある。
+- libpng・zlibのソースコードを別途取得し、win32/x86向けにビルドできるようにする必要がある。
 
 ## スコープ外
 

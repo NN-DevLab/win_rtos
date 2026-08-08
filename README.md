@@ -69,11 +69,15 @@ NetX Duo・FileXの2つはGUIXを使わないため通常のコンソールア�
    git clone https://github.com/eclipse-threadx/guix.git repos/guix
    ```
    (`win_rtos.exe` だけなら threadx のみで良い)
-3. ステータスバーの **「Select a Kit」** をクリックし、`Visual Studio Community 20xx Release - x86`(または `amd64_x86`)を選択
+3. 合成画像のPNGエンコード(ADR-0003)に使う libpng・zlib を取得(未取得の場合)
+   - zlib: https://zlib.net/ から最新版を取得し、`repos/zlib` に展開
+   - libpng: http://www.libpng.org/pub/png/libpng.html から最新版を取得し、`repos/libpng` に展開
+   - どちらもZIP/tar展開後にできる中間フォルダ(例: `lpng1658`)は不要なので、その中身を`repos/libpng`直下に移すこと(`repos/zlib`直下に`zlib.h`が、`repos/libpng`直下に`png.h`があれば正しい状態)
+4. ステータスバーの **「Select a Kit」** をクリックし、`Visual Studio Community 20xx Release - x86`(または `amd64_x86`)を選択
    - 表示されない場合は、コマンドパレット(`Ctrl+Shift+P`)から `CMake: Select a Kit` を実行する
    - それでも一覧に出てこない場合は `CMake: Scan for Kits` を試す
-4. Kit選択後、自動的にconfigureが走る(初回は数十秒かかる)
-5. ステータスバーの **「Select a Build Target」** で、以下のいずれかを選び、**▶(Run)** ボタンを押すとビルド・実行される
+5. Kit選択後、自動的にconfigureが走る(初回は数十秒かかる)
+6. ステータスバーの **「Select a Build Target」** で、以下のいずれかを選び、**▶(Run)** ボタンを押すとビルド・実行される
    - `win_rtos`
    - `win_rtos_poc`
    - `win_rtos_sandbox_netx` / `win_rtos_sandbox_filex` / `win_rtos_sandbox_guix`

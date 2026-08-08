@@ -6,6 +6,7 @@
 
 - [0001. プラットフォームにWindows(Win32シミュレータ)を採用する](0001-windows-platform.md)
 - [0002. 画像取得は「FTPで探索、HTTPで転送」の二段構成にする](0002-ftp-discovery-http-transfer.md)
+- [0003. PNG保存(エンコード)にlibpngを組み込む](0003-libpng-for-png-encoding.md)
 
 ## 目的
 

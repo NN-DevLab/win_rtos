@@ -35,6 +35,7 @@ flowchart LR
 |---|---|---|
 | NetX Duo FTPクライアント | 機器・フォルダの探索 | [0002](../decisions/0002-ftp-discovery-http-transfer.md) |
 | NetX Duo HTTPクライアント | ファイルの実転送 | [0002](../decisions/0002-ftp-discovery-http-transfer.md) |
+| libpng + zlib | 合成画像のPNGエンコード(保存) | [0003](../decisions/0003-libpng-for-png-encoding.md) |
 
 ## コンポーネント構成
 

@@ -59,6 +59,30 @@ target_link_libraries(win_rtos_poc
     guix
 )
 
+# --- libpng + zlib: PNG encoding for saving composite images (ADR-0003) ---
+# GUIX can only decode PNGs at runtime (gx_image_reader_png_decode), not
+# encode them, so we vendor libpng/zlib ourselves for that.
+
+# zlib must be added before libpng: libpng's CMakeLists.txt looks for it via
+# find_package(ZLIB), which only succeeds if the zlibstatic target (and its
+# headers) already exist.
+add_subdirectory(
+    ${CMAKE_CURRENT_LIST_DIR}/repos/zlib
+    ${CMAKE_BINARY_DIR}/zlib
+)
+
+# find_package(ZLIB) looks for an installed copy by default; it doesn't know
+# about the in-tree zlibstatic target above, so point it there manually.
+# Two include dirs: zlib.h lives in the source tree, but zconf.h is
+# generated into the build tree at configure time.
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/repos/zlib ${CMAKE_BINARY_DIR}/zlib)
+set(ZLIB_LIBRARY zlibstatic)
+
+add_subdirectory(
+    ${CMAKE_CURRENT_LIST_DIR}/repos/libpng
+    ${CMAKE_BINARY_DIR}/libpng
+)
+
 # --- sandboxes: one component at a time, for looking at just its API ------
 
 add_executable(win_rtos_sandbox_netx
