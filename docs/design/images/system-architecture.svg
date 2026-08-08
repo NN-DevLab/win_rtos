@@ -1,0 +1,106 @@
+<svg viewBox="0 0 720 600" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>システム構成図(アプリ層・ミドル層・ドライバ層・デバイス層)</title>
+<desc>アプリ層はユーザアプリとGUIXからなり、ユーザアプリがミドル層のNetX Duo(FTP/HTTPクライアント)とFileXを呼び出す。GUIXは表示のみを担当する。ミドル層はドライバ層のNpcapドライバとfx_win32_file_driverにつながり、ドライバ層はデバイス層の同一LAN内のPCとWindowsファイルシステムにつながる。</desc>
+<style>
+  .layer-bg { fill: var(--layer-fill); stroke: var(--layer-stroke); stroke-width: 1; }
+  .layer-label { font-size: 13px; font-weight: 700; fill: var(--text-sub); }
+  .box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .box-text { font-size: 12px; fill: var(--text-main); text-anchor: middle; }
+  .conn { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); marker-start: url(#arrow); }
+  :root {
+    --bg: #ffffff; --layer-fill: #f0f0f0; --layer-stroke: #cccccc;
+    --box-fill: #eef2ff; --box-stroke: #333333; --text-main: #1a1a1a; --text-sub: #555555;
+    --arrow-color: #555555;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --layer-fill: #2a2a2a; --layer-stroke: #444444;
+    --box-fill: #2d3250; --box-stroke: #8ab4f8; --text-main: #e8e8e8; --text-sub: #aaaaaa;
+    --arrow-color: #8ab4f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --layer-fill: #2a2a2a; --layer-stroke: #444444;
+      --box-fill: #2d3250; --box-stroke: #8ab4f8; --text-main: #e8e8e8; --text-sub: #aaaaaa;
+      --arrow-color: #8ab4f8;
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="720" height="600" fill="var(--bg)"/>
+
+<!-- Layer backgrounds -->
+<rect class="layer-bg" x="20" y="20" width="680" height="170" rx="8"/>
+<text class="layer-label" x="34" y="40">アプリ層</text>
+
+<rect class="layer-bg" x="20" y="210" width="680" height="130" rx="8"/>
+<text class="layer-label" x="34" y="230">ミドル層</text>
+
+<rect class="layer-bg" x="20" y="360" width="680" height="100" rx="8"/>
+<text class="layer-label" x="34" y="380">ドライバ層</text>
+
+<rect class="layer-bg" x="20" y="480" width="680" height="100" rx="8"/>
+<text class="layer-label" x="34" y="500">デバイス層</text>
+
+<!-- App layer: GUIX (display only) on top, ユーザアプリ below (spans full width, calls into NetX Duo/FileX) -->
+<rect class="box" x="275" y="50" width="150" height="45" rx="6"/>
+<text class="box-text" x="350" y="77">GUIX(表示)</text>
+
+<rect class="box" x="50" y="120" width="590" height="50" rx="6"/>
+<text class="box-text" x="345" y="150">ユーザアプリ(S01〜S05・D01〜D05)</text>
+
+<!-- Middle layer -->
+<rect class="box" x="50" y="255" width="150" height="60" rx="6"/>
+<text class="box-text" x="125" y="281">NetX Duo</text>
+<text class="box-text" x="125" y="299">FTPクライアント</text>
+
+<rect class="box" x="230" y="255" width="150" height="60" rx="6"/>
+<text class="box-text" x="305" y="281">NetX Duo</text>
+<text class="box-text" x="305" y="299">HTTPクライアント</text>
+
+<rect class="box" x="480" y="255" width="160" height="60" rx="6"/>
+<text class="box-text" x="560" y="289">FileX</text>
+
+<!-- Driver layer -->
+<rect class="box" x="50" y="395" width="330" height="50" rx="6"/>
+<text class="box-text" x="215" y="425">Npcapドライバ</text>
+
+<rect class="box" x="470" y="395" width="180" height="50" rx="6"/>
+<text class="box-text" x="560" y="418">fx_win32_file_driver</text>
+<text class="box-text" x="560" y="434">(実ファイル永続化)</text>
+
+<!-- Device layer -->
+<rect class="box" x="90" y="515" width="250" height="50" rx="6"/>
+<text class="box-text" x="215" y="545">同一LAN内のPC(IIS)</text>
+
+<rect class="box" x="450" y="515" width="220" height="50" rx="6"/>
+<text class="box-text" x="560" y="545">Windowsファイルシステム(NTFS)</text>
+
+<!-- Connections: all straight, right-angle only (no diagonals) -->
+<!-- GUIX <-> ユーザアプリ -->
+<line class="conn" x1="350" y1="95" x2="350" y2="120"/>
+<!-- ユーザアプリ -> FTP -->
+<line class="conn" x1="125" y1="170" x2="125" y2="255"/>
+<!-- ユーザアプリ -> HTTP -->
+<line class="conn" x1="305" y1="170" x2="305" y2="255"/>
+<!-- ユーザアプリ -> FX -->
+<line class="conn" x1="560" y1="170" x2="560" y2="255"/>
+<!-- FTP -> Npcap -->
+<line class="conn" x1="125" y1="315" x2="125" y2="395"/>
+<!-- HTTP -> Npcap -->
+<line class="conn" x1="305" y1="315" x2="305" y2="395"/>
+<!-- HTTP -> FX (data write) -->
+<line class="conn" x1="380" y1="285" x2="480" y2="285"/>
+<!-- FX <-> FileDriver -->
+<line class="conn" x1="560" y1="315" x2="560" y2="395"/>
+<!-- Npcap <-> LAN -->
+<line class="conn" x1="215" y1="445" x2="215" y2="515"/>
+<!-- FileDriver <-> WinFS -->
+<line class="conn" x1="560" y1="445" x2="560" y2="515"/>
+
+</svg>

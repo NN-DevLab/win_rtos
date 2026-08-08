@@ -1,0 +1,16 @@
+<svg viewBox="0 0 440 340" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect x="1" y="1" width="438" height="338" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  <text x="14" y="24" font-size="14" font-weight="bold" fill="#333333">ビューア画面</text>
+
+  <rect x="20" y="36" width="400" height="250" fill="#f5f5f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="220" y="165" font-size="13" fill="#333333" text-anchor="middle">画像表示</text>
+
+  <rect x="20" y="300" width="110" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="75" y="319" font-size="11" fill="#333333" text-anchor="middle">戻るボタン</text>
+
+  <rect x="165" y="300" width="110" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="220" y="319" font-size="11" fill="#333333" text-anchor="middle">編集ボタン</text>
+
+  <rect x="310" y="300" width="110" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="365" y="319" font-size="11" fill="#333333" text-anchor="middle">保存ボタン</text>
+</svg>

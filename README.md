@@ -111,6 +111,8 @@ cmake --build build --target win_rtos_sandbox_guix
 
 - [要件定義](docs/requirements.md) — 何を作るか、制約条件、機能要件
 - [開発の流れ](docs/development-flow.md) — 要件定義から先、どういう工程で進めるか
+- [方式設計書](docs/design/architecture.md) — システムをどう作るか
+- [機能設計書](docs/design/functional.md) — システムが何をするか(画面・操作)
 - [設計判断の記録(ADR)](docs/decisions/) — 方式設計・機能設計で何を検討し、なぜその判断をしたか
 
 ---

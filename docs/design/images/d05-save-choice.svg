@@ -1,0 +1,15 @@
+<svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect x="1" y="1" width="298" height="148" fill="#ffffff" stroke="#333333" stroke-width="2"/>
+  <text x="14" y="22" font-size="12" font-weight="bold" fill="#333333">保存方法選択ダイアログ</text>
+
+  <text x="20" y="45" font-size="11" fill="#333333">保存方法を選んでください</text>
+
+  <rect x="30" y="60" width="110" height="50" fill="#eef2ff" stroke="#333333" stroke-width="1.5"/>
+  <text x="85" y="90" font-size="12" fill="#333333" text-anchor="middle">上書き保存</text>
+
+  <rect x="160" y="60" width="110" height="50" fill="#eef2ff" stroke="#333333" stroke-width="1.5"/>
+  <text x="215" y="90" font-size="12" fill="#333333" text-anchor="middle">別名で保存</text>
+
+  <rect x="115" y="120" width="70" height="20" fill="#f0f0f0" stroke="#333333" stroke-width="1"/>
+  <text x="150" y="134" font-size="10" fill="#333333" text-anchor="middle">キャンセル</text>
+</svg>
