@@ -1,0 +1,139 @@
+<svg viewBox="0 0 1120 900" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>ワーカースレッド失敗時のエラー表示(共通パターン)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッド、共有データ(RAM、TX_MUTEXで保護)、ワーカースレッド(FTP探索/HTTP転送/データ管理のいずれか)の5本のライフラインの間で、ワーカースレッドが処理中にエラーを検知してからset_xxx_status(OP_ERROR, error_code)で共有データに書き込み、GUIXシステムスレッドのGX_EVENT_TIMERによるポーリングで検知、error_codeに対応するメッセージを確定してエラーパネルをshow/front_moveで表示するまでの流れと、エラーパネルの「OK」を押してhideで閉じるまでの流れを示す。別名で保存・上書き保存・接続・取得開始のいずれの失敗でも共通のパターン。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-mem { fill: var(--box-fill-mem); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-worker { fill: var(--tick-fill-worker); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .mutex-span { fill: var(--mutex-fill); stroke: var(--mutex-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .mutex-label { font-size: 10.5px; font-weight: 700; fill: var(--mutex-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-mem: #fee2e2; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-worker: #dbeafe;
+    --arrow-color: #4c1d95; --mutex-color: #b91c1c; --mutex-fill: rgba(185,28,28,0.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-worker: #1e3a5f;
+    --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-worker: #1e3a5f;
+      --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1120" height="900" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIX入力<tspan x="320" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">GUIXシステム<tspan x="550" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-mem" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">共有データ<tspan x="780" dy="14">(RAM)</tspan></text>
+
+<rect class="actor-box" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="30">ワーカー<tspan x="1010" dy="13">スレッド</tspan><tspan x="1010" dy="13" font-size="10" font-weight="400">(FTP探索/HTTP転送/データ管理)</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="805"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="805"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="805"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="805"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="805"/>
+
+<!-- ============ エラー発生→パネル表示 ============ -->
+<rect x="5" y="75" width="220" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">エラー発生 → パネル表示</text>
+
+<!-- 1: self-processing (worker) -->
+<rect class="self-tick-worker" x="1003" y="110" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1025" y="129">① 処理中にエラーが発生</text>
+
+<!-- mutex-protected span: write (worker <-> 共有データ) -->
+<rect class="mutex-span" x="765" y="155" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="775" y="175">TX_MUTEXロック区間</text>
+
+<!-- 2: worker -> 共有データ (write, mutex locked) -->
+<line class="msg" x1="1010" y1="215" x2="780" y2="215"/>
+<text class="msg-label" x="805" y="210">② set_xxx_status(OP_ERROR, error_code)を呼ぶ</text>
+
+<!-- 3: 共有データ -> worker (return) -->
+<line class="msg-return" x1="780" y1="250" x2="1010" y2="250"/>
+<text class="msg-label" x="805" y="245">③ 書き込み完了</text>
+
+<!-- 4: self-processing (system) — timer fires, NOT part of the mutex-locked region -->
+<rect class="self-tick" x="543" y="290" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="309">④ GX_EVENT_TIMER発火</text>
+
+<!-- mutex-protected span: read (system <-> 共有データ) -->
+<rect class="mutex-span" x="535" y="340" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="545" y="360">TX_MUTEXロック区間</text>
+
+<!-- 5: system -> 共有データ (read, mutex locked) -->
+<line class="msg" x1="550" y1="395" x2="780" y2="395"/>
+<text class="msg-label" x="555" y="390">⑤ get_xxx_status(&amp;out)を呼ぶ</text>
+
+<!-- 6: 共有データ -> system (return) -->
+<line class="msg-return" x1="780" y1="435" x2="550" y2="435"/>
+<text class="msg-label" x="555" y="430">⑥ 結果(OP_ERROR、error_code)を返す</text>
+
+<!-- 7: self-processing (system) -->
+<rect class="self-tick" x="543" y="480" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="490">⑦ メッセージを確定</text>
+<text class="msg-label" x="565" y="504">　show(&amp;エラーパネル) front_move(&amp;エラーパネル)</text>
+
+<!-- 8: system -> user (return) -->
+<line class="msg-return" x1="550" y1="550" x2="90" y2="550"/>
+<text class="msg-label" x="95" y="540">⑧ 画面が更新される</text>
+<text class="msg-label" x="95" y="565">　(エラーパネルが表示される)</text>
+
+<line x1="10" y1="590" x2="1100" y2="590" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<!-- ============ エラーパネルを閉じる ============ -->
+<rect x="5" y="605" width="180" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="620">エラーパネルを閉じる</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="90" y1="640" x2="320" y2="640"/>
+<text class="msg-label" x="95" y="635">① 「OK」をタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="320" y1="680" x2="550" y2="680"/>
+<text class="msg-label" x="325" y="675">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing (system) -->
+<rect class="self-tick" x="543" y="710" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="729">③ hide(&amp;エラーパネル)</text>
+
+<!-- 4: system -> user (return) -->
+<line class="msg-return" x1="550" y1="770" x2="90" y2="770"/>
+<text class="msg-label" x="95" y="760">④ 呼び出し元の画面に戻る</text>
+<text class="msg-label" x="95" y="785">　(パネルが閉じるだけ、画面遷移はしない)</text>
+
+</svg>

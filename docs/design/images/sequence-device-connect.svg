@@ -1,0 +1,206 @@
+<svg viewBox="0 0 1580 1250" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>接続のシーケンス(D06 → S02)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッド、共有データ(RAM、TX_MUTEXで保護)、FTP探索スレッド、NetX Duo、同一LAN内の機器の7本のライフラインの間で、D06でIPアドレスを入力して「接続開始」を押してから、D06を閉じてS02の接続状態を「接続中...」に更新、FTP探索スレッドへの接続指示(TX_QUEUE)、NetX Duo経由でのnx_ftp_client_connect、接続成功後のnx_ftp_client_directory_listing_getによるルートフォルダ取得、共有データへのTX_MUTEXロック書き込み、GUIXシステムスレッドのGX_EVENT_TIMERによる共有データへのTX_MUTEXロック読み込み、接続状態とフォルダ一覧の表示更新までのメッセージのやり取りを示す。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-ext { fill: var(--box-fill-ext); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-mem { fill: var(--box-fill-mem); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-net { fill: var(--tick-fill-net); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .mutex-span { fill: var(--mutex-fill); stroke: var(--mutex-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .mutex-label { font-size: 10.5px; font-weight: 700; fill: var(--mutex-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-ext: #f3f4f6; --box-fill-mem: #fee2e2; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-net: #dbeafe;
+    --arrow-color: #4c1d95; --mutex-color: #b91c1c; --mutex-fill: rgba(185,28,28,0.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-net: #1e3a5f;
+    --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-net: #1e3a5f;
+      --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1580" height="1250" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIX入力<tspan x="320" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">GUIXシステム<tspan x="550" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-mem" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">共有データ<tspan x="780" dy="14">(RAM)</tspan></text>
+
+<rect class="actor-box" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="34">FTP探索<tspan x="1010" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-ext" x="1170" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1240" y="41">NetX Duo</text>
+
+<rect class="actor-box-ext" x="1400" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1470" y="34">同一LAN内<tspan x="1470" dy="14">の機器</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="1145"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="1145"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="1145"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="1145"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="1145"/>
+<line class="lifeline" x1="1240" y1="70" x2="1240" y2="1145"/>
+<line class="lifeline" x1="1470" y1="70" x2="1470" y2="1145"/>
+
+<!-- Title -->
+<rect x="5" y="75" width="230" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">D06 → 接続処理(S02)</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="90" y1="110" x2="320" y2="110"/>
+<text class="msg-label" x="95" y="105">① IPアドレスを入力して</text>
+<text class="msg-label" x="95" y="120">　「接続開始」をタッチ(D06表示中)</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="320" y1="165" x2="550" y2="165"/>
+<text class="msg-label" x="325" y="160">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing (system) -->
+<rect class="self-tick" x="543" y="195" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="205">③ イベントを処理し</text>
+<text class="msg-label" x="565" y="219">　D06のハンドラを呼ぶ</text>
+
+<!-- 4: self-processing (system) -->
+<line class="lifeline" x1="550" y1="225" x2="550" y2="240" stroke-dasharray="none"/>
+<rect class="self-tick" x="543" y="240" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="250">④ hide(&amp;D06)</text>
+<text class="msg-label" x="565" y="264">　接続状態を「接続中...」に更新</text>
+
+<!-- 5: system -> FTP探索スレッド -->
+<line class="msg" x1="550" y1="300" x2="1010" y2="300"/>
+<text class="msg-label" x="575" y="295">⑤ TX_QUEUEで接続指示(IPアドレス)</text>
+
+<!-- 6: system -> user (return) -->
+<line class="msg-return" x1="550" y1="345" x2="90" y2="345"/>
+<text class="msg-label" x="95" y="335">⑥ 画面が更新される</text>
+<text class="msg-label" x="95" y="360">　(D06が閉じ、「接続中...」表示)</text>
+
+<!-- 7: FTP探索スレッド -> NetX Duo (connect) -->
+<line class="msg" x1="1010" y1="390" x2="1240" y2="390"/>
+<text class="msg-label" x="1015" y="385">⑦ nx_ftp_client_connect(ip, ...)を呼ぶ</text>
+
+<!-- 8: NetX Duo -> 同一LAN内の機器 -->
+<line class="msg" x1="1240" y1="430" x2="1470" y2="430"/>
+<text class="msg-label" x="1245" y="425">⑧ FTP接続要求(TCP)</text>
+
+<!-- 9: 同一LAN内の機器 -> NetX Duo (return) -->
+<line class="msg-return" x1="1470" y1="470" x2="1240" y2="470"/>
+<text class="msg-label" x="1245" y="465">⑨ 接続成功/失敗を返す</text>
+
+<!-- 10: NetX Duo -> FTP探索スレッド (return) -->
+<line class="msg-return" x1="1240" y1="510" x2="1010" y2="510"/>
+<text class="msg-label" x="1015" y="505">⑩ 接続結果を返す</text>
+
+<!-- 11: self-processing (FTP探索スレッド) -->
+<rect class="self-tick-net" x="1003" y="540" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1025" y="559">⑪ 成功なら続行(失敗ならここで打ち切り)</text>
+
+<!-- 12: FTP探索スレッド -> NetX Duo (listing) -->
+<line class="msg" x1="1010" y1="600" x2="1240" y2="600"/>
+<text class="msg-label" x="1015" y="595">⑫ nx_ftp_client_directory_listing_get("/", ...)を呼ぶ</text>
+
+<!-- 13: NetX Duo -> 同一LAN内の機器 -->
+<line class="msg" x1="1240" y1="640" x2="1470" y2="640"/>
+<text class="msg-label" x="1245" y="635">⑬ LISTコマンド(FTP)</text>
+
+<!-- 14: 同一LAN内の機器 -> NetX Duo (return) -->
+<line class="msg-return" x1="1470" y1="680" x2="1240" y2="680"/>
+<text class="msg-label" x="1245" y="675">⑭ フォルダの中身を返す</text>
+
+<!-- 15: NetX Duo -> FTP探索スレッド (return) -->
+<line class="msg-return" x1="1240" y1="720" x2="1010" y2="720"/>
+<text class="msg-label" x="1015" y="715">⑮ 一覧結果を返す</text>
+
+<!-- mutex-protected span: write (FTP探索スレッド <-> 共有データ) -->
+<rect class="mutex-span" x="765" y="735" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="775" y="755">TX_MUTEXロック区間</text>
+
+<!-- 16: FTP探索スレッド -> 共有データ (write, mutex locked) -->
+<line class="msg" x1="1010" y1="795" x2="780" y2="795"/>
+<text class="msg-label" x="805" y="790">⑯ set_connection_status(...)を呼ぶ</text>
+
+<!-- 17: 共有データ -> FTP探索スレッド (return) -->
+<line class="msg-return" x1="780" y1="830" x2="1010" y2="830"/>
+<text class="msg-label" x="805" y="825">⑰ 書き込み完了</text>
+
+<!-- 18: self-processing (system) — timer fires, NOT part of the mutex-locked region -->
+<rect class="self-tick" x="543" y="870" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="889">⑱ GX_EVENT_TIMER発火</text>
+
+<!-- mutex-protected span: read (system <-> 共有データ) -->
+<rect class="mutex-span" x="535" y="920" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="545" y="940">TX_MUTEXロック区間</text>
+
+<!-- 19: system -> 共有データ (read, mutex locked) -->
+<line class="msg" x1="550" y1="975" x2="780" y2="975"/>
+<text class="msg-label" x="555" y="970">⑲ get_connection_status(&amp;out)を呼ぶ</text>
+
+<!-- 20: 共有データ -> system (return) -->
+<line class="msg-return" x1="780" y1="1015" x2="550" y2="1015"/>
+<text class="msg-label" x="555" y="1010">⑳ 結果を返す</text>
+
+<!-- 21: self-processing (system) -->
+<rect class="self-tick" x="543" y="1060" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="1079">㉑ 接続状態・フォルダ一覧の表示を更新</text>
+
+<!-- 22: system -> user (return) -->
+<line class="msg-return" x1="550" y1="1130" x2="90" y2="1130"/>
+<text class="msg-label" x="95" y="1120">㉒ 画面が更新される</text>
+<text class="msg-label" x="95" y="1145">　(接続済み/失敗、フォルダ一覧が表示される)</text>
+
+<!-- Legend -->
+<line x1="20" y1="1170" x2="1560" y2="1170" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<rect class="actor-box" x="20" y="1183" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1195" fill="var(--text-main)" font-weight="400">スレッド</text>
+
+<rect class="actor-box-ext" x="180" y="1183" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="204" y="1195" fill="var(--text-main)" font-weight="400">外部ライブラリ/OS</text>
+
+<rect class="actor-box-mem" x="340" y="1183" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="364" y="1195" fill="var(--text-main)" font-weight="400">共有データ</text>
+
+<rect class="self-tick" x="20" y="1218" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1230" fill="var(--text-main)" font-weight="400">システム処理</text>
+
+<rect class="self-tick-net" x="180" y="1218" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="204" y="1230" fill="var(--text-main)" font-weight="400">FTP探索処理</text>
+
+<rect class="mutex-span" x="340" y="1218" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="364" y="1230">ロック区間</text>
+
+</svg>

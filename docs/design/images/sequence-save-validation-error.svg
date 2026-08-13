@@ -1,0 +1,112 @@
+<svg viewBox="0 0 700 620" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>D03入力チェックNGのシーケンス(D04エラーパネル)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッドの3本のライフラインの間で、D03表示中に「保存」をタッチしてから、GX_EVENTの送信、入力チェック(空欄→禁止文字→重複、最初に引っかかったものだけ)、show/front_moveによるD04表示、D04の「OK」をタッチしてhideで閉じD03に戻るまでのメッセージのやり取りを示す。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-stroke: #333333; --tick-fill: #fef3c7;
+    --arrow-color: #4c1d95;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+    --arrow-color: #c4b5fd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+      --arrow-color: #c4b5fd;
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="700" height="620" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="40" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="110" y="41">ユーザー</text>
+
+<rect class="actor-box" x="280" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="350" y="34">GUIX入力<tspan x="350" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="520" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="590" y="34">GUIXシステム<tspan x="590" dy="14">スレッド</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="110" y1="70" x2="110" y2="610"/>
+<line class="lifeline" x1="350" y1="70" x2="350" y2="610"/>
+<line class="lifeline" x1="590" y1="70" x2="590" y2="610"/>
+
+<!-- ============ バリデーションNG ============ -->
+<rect x="5" y="75" width="180" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">バリデーションNG(D04表示)</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="110" x2="350" y2="110"/>
+<text class="msg-label" x="115" y="105">① 名前を入力して「保存」をタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="150" x2="590" y2="150"/>
+<text class="msg-label" x="355" y="145">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing -->
+<rect class="self-tick" x="583" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="190">③ イベントを処理し</text>
+<text class="msg-label" x="612" y="204">　D03のハンドラを呼ぶ</text>
+
+<!-- 4: self-processing -->
+<line class="lifeline" x1="590" y1="210" x2="590" y2="225" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="225" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="235">④ 入力チェック(空欄→禁止文字→重複)</text>
+<text class="msg-label" x="612" y="249">　いずれかに該当(最初の1件だけ確定)</text>
+
+<!-- 5: self-processing -->
+<line class="lifeline" x1="590" y1="255" x2="590" y2="270" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="270" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="280">⑤ show(&amp;D04)</text>
+<text class="msg-label" x="612" y="294">　front_move(&amp;D04)</text>
+
+<!-- 6: system -> user (return) -->
+<line class="msg-return" x1="590" y1="335" x2="110" y2="335"/>
+<text class="msg-label" x="115" y="325">⑥ 画面が更新される</text>
+<text class="msg-label" x="115" y="350">　(D03+D04が重なって表示)</text>
+
+<line x1="10" y1="385" x2="690" y2="385" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<!-- ============ D04を閉じる ============ -->
+<rect x="5" y="400" width="220" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="415">D04を閉じる(D03に戻る)</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="435" x2="350" y2="435"/>
+<text class="msg-label" x="115" y="430">① D04の「OK」をタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="475" x2="590" y2="475"/>
+<text class="msg-label" x="355" y="470">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing -->
+<rect class="self-tick" x="583" y="505" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="525">③ hide(&amp;D04)</text>
+
+<!-- 4: system -> user (return) -->
+<line class="msg-return" x1="590" y1="580" x2="110" y2="580"/>
+<text class="msg-label" x="115" y="570">④ D03の表示に戻る</text>
+<text class="msg-label" x="115" y="595">　(入力欄の内容はそのまま残る)</text>
+
+</svg>

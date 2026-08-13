@@ -1,0 +1,83 @@
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>D01「移動」のシーケンス(S05版・差分のみ)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッドの3本のライフラインの間で、S05(コラージュ画面)で画像にタッチ(PEN_DOWN)してから、移動モード中と判定し、タッチ座標からどちらの画像(左スロット/右スロットのどちらのウィジェット)かをヒットテストで判定して対象スロットを記憶するまでを示す。以降のドラッグ処理(PEN_DRAGの繰り返しでgx_widget_shiftを呼ぶ部分、PEN_UPで編集フラグを立てる部分)はD01「移動」のシーケンス図(sequence-toolbar-move.svg)の「ドラッグで画像を動かす」④以降と同じで、gx_widget_shiftの対象がここで判定したスロットの画像になる点だけが異なる。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .note-box { fill: var(--note-fill); stroke: var(--note-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .note-text { font-size: 11.5px; fill: var(--note-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-stroke: #333333; --tick-fill: #fef3c7;
+    --arrow-color: #4c1d95;
+    --note-color: #1d4ed8; --note-fill: rgba(29,78,216,0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+    --arrow-color: #c4b5fd;
+    --note-color: #60a5fa; --note-fill: rgba(96,165,250,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+      --arrow-color: #c4b5fd;
+      --note-color: #60a5fa; --note-fill: rgba(96,165,250,0.08);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="900" height="400" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="40" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="110" y="41">ユーザー</text>
+
+<rect class="actor-box" x="280" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="350" y="34">GUIX入力<tspan x="350" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="520" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="590" y="34">GUIXシステム<tspan x="590" dy="14">スレッド</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="110" y1="70" x2="110" y2="260"/>
+<line class="lifeline" x1="350" y1="70" x2="350" y2="260"/>
+<line class="lifeline" x1="590" y1="70" x2="590" y2="260"/>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="110" x2="350" y2="110"/>
+<text class="msg-label" x="115" y="105">① 画像にタッチ(PEN_DOWN)</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="150" x2="590" y2="150"/>
+<text class="msg-label" x="355" y="145">② GX_EVENT(PEN_DOWN)をキューに送る</text>
+
+<!-- 3: self-processing -->
+<rect class="self-tick" x="583" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="199">③ 移動モード中と判定</text>
+
+<!-- 4: self-processing -->
+<line class="lifeline" x1="590" y1="210" x2="590" y2="225" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="225" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="235">④ タッチ座標からどちらの画像か判定(ヒットテスト)</text>
+<text class="msg-label" x="612" y="249">　対象スロット(左/右)を記憶</text>
+
+<!-- Note: continuation -->
+<rect class="note-box" x="40" y="290" width="820" height="90" rx="6"/>
+<text class="note-text" x="55" y="315" font-weight="700">この後の流れはD01「移動」のシーケンス図(sequence-toolbar-move.svg)と同じ</text>
+<text class="note-text" x="55" y="335">「ドラッグで画像を動かす」④以降(PEN_DRAGの繰り返しでgx_widget_shiftを呼ぶ→PEN_UPで</text>
+<text class="note-text" x="55" y="352">「編集内容あり」フラグを立てる)をそのまま行う。gx_widget_shiftの対象が、④で判定した</text>
+<text class="note-text" x="55" y="369">スロットの画像ウィジェットになる点だけが異なる。</text>
+
+</svg>

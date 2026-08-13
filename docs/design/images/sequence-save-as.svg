@@ -1,0 +1,234 @@
+<svg viewBox="0 0 1800 1415" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>別名で保存のシーケンス(D03、成功パターン)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッド、共有データ(RAM、TX_MUTEXで保護)、データ管理スレッド、libpng、FileX、Windowsファイルシステムの8本のライフラインの間で、D03で名前を入力して保存を押してから、入力チェック、GUIXシステムスレッドによるgx_utility_canvas_to_bmpでの画面表示キャプチャ、データ管理スレッドへの保存指示(TX_QUEUE)、FileXのfx_file_create呼び出し、libpngによるPNGエンコードとその書き込みコールバックからのfx_file_write呼び出し、fx_win32_file_driverを介したWindowsファイルシステムへの実書き込み、fx_file_close、共有データへのTX_MUTEXロック書き込み、GUIXシステムスレッドのGX_EVENT_TIMERによる共有データへのTX_MUTEXロック読み込み、D03を閉じて画面が更新されるまでのメッセージのやり取りを示す(入力チェックNGの分岐は別図で扱う)。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-ext { fill: var(--box-fill-ext); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-mem { fill: var(--box-fill-mem); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-lib { fill: var(--box-fill-lib); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-file { fill: var(--tick-fill-file); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-lib { fill: var(--tick-fill-lib); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .mutex-span { fill: var(--mutex-fill); stroke: var(--mutex-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .mutex-label { font-size: 10.5px; font-weight: 700; fill: var(--mutex-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-ext: #f3f4f6; --box-fill-mem: #fee2e2; --box-fill-lib: #cffafe; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-file: #dbeafe; --tick-fill-lib: #a5f3fc;
+    --arrow-color: #4c1d95; --mutex-color: #b91c1c; --mutex-fill: rgba(185,28,28,0.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-fill-lib: #164e63; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-file: #1e3a5f; --tick-fill-lib: #155e75;
+    --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-fill-lib: #164e63; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-file: #1e3a5f; --tick-fill-lib: #155e75;
+      --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1800" height="1415" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIX入力<tspan x="320" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">GUIXシステム<tspan x="550" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-mem" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">共有データ<tspan x="780" dy="14">(RAM)</tspan></text>
+
+<rect class="actor-box" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="34">データ管理<tspan x="1010" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-lib" x="1170" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1240" y="41">libpng</text>
+
+<rect class="actor-box-ext" x="1400" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1470" y="41">FileX</text>
+
+<rect class="actor-box-ext" x="1630" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1700" y="34">Windows<tspan x="1700" dy="14">ファイルシステム</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="1320"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="1320"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="1320"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="1320"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="1320"/>
+<line class="lifeline" x1="1240" y1="70" x2="1240" y2="1320"/>
+<line class="lifeline" x1="1470" y1="70" x2="1470" y2="1320"/>
+<line class="lifeline" x1="1700" y1="70" x2="1700" y2="1320"/>
+
+<!-- Title -->
+<rect x="5" y="75" width="270" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">D03 → 保存(別名で保存・成功パターン)</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="90" y1="110" x2="320" y2="110"/>
+<text class="msg-label" x="95" y="105">① 名前を入力して「保存」をタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="320" y1="150" x2="550" y2="150"/>
+<text class="msg-label" x="325" y="145">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing (system) -->
+<rect class="self-tick" x="543" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="190">③ イベントを処理しD03のハンドラを呼ぶ</text>
+<text class="msg-label" x="565" y="204">　入力チェック(空欄→禁止文字→重複)は問題なし</text>
+
+<!-- 4: self-processing (system) — capture the display -->
+<line class="lifeline" x1="550" y1="210" x2="550" y2="225" stroke-dasharray="none"/>
+<rect class="self-tick" x="543" y="225" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="235">④ gx_utility_canvas_to_bmpで</text>
+<text class="msg-label" x="565" y="249">　画像表示エリアをキャプチャ</text>
+
+<!-- 5: system -> data -->
+<line class="msg" x1="550" y1="285" x2="1010" y2="285"/>
+<text class="msg-label" x="575" y="280">⑤ TX_QUEUEで保存指示(ファイル名、キャプチャしたデータ参照)</text>
+
+<!-- 6: data -> FileX (create) -->
+<line class="msg" x1="1010" y1="325" x2="1470" y2="325"/>
+<text class="msg-label" x="1015" y="320">⑥ fx_file_create(&amp;file, new_name)</text>
+
+<!-- 7: self-processing (FileX) -->
+<rect class="self-tick-file" x="1463" y="355" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1485" y="374">⑦ 新規ファイルを作る</text>
+
+<!-- 8: FileX -> data (return) -->
+<line class="msg-return" x1="1470" y1="415" x2="1010" y2="415"/>
+<text class="msg-label" x="1015" y="410">⑧ 作成結果(status)を返す</text>
+
+<!-- 9: data -> libpng (encode) -->
+<line class="msg" x1="1010" y1="455" x2="1240" y2="455"/>
+<text class="msg-label" x="1015" y="450">⑨ PNGエンコードを呼ぶ(png_write_image)</text>
+
+<!-- 10: self-processing (libpng) -->
+<rect class="self-tick-lib" x="1233" y="485" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1255" y="495">⑩ 画像データを圧縮し</text>
+<text class="msg-label" x="1255" y="509">　PNG形式に変換</text>
+
+<!-- 11: libpng -> FileX (write callback) -->
+<line class="msg" x1="1240" y1="545" x2="1470" y2="545"/>
+<text class="msg-label" x="1245" y="540">⑪ 書き込みコールバックから</text>
+<text class="msg-label" x="1245" y="555">　fx_file_writeを呼ぶ</text>
+
+<!-- 12: FileX -> Windowsファイルシステム -->
+<line class="msg" x1="1470" y1="595" x2="1700" y2="595"/>
+<text class="msg-label" x="1475" y="590">⑫ 実ファイルへ書き込む</text>
+<text class="msg-label" x="1475" y="605">　(fx_win32_file_driver経由)</text>
+
+<!-- 13: Windowsファイルシステム -> FileX (return) -->
+<line class="msg-return" x1="1700" y1="650" x2="1470" y2="650"/>
+<text class="msg-label" x="1475" y="645">⑬ 書き込み結果を返す</text>
+
+<!-- 14: FileX -> libpng (return) -->
+<line class="msg-return" x1="1470" y1="690" x2="1240" y2="690"/>
+<text class="msg-label" x="1245" y="685">⑭ 書き込み結果を返す</text>
+
+<!-- 15: libpng -> data (return) -->
+<line class="msg-return" x1="1240" y1="730" x2="1010" y2="730"/>
+<text class="msg-label" x="1015" y="725">⑮ エンコード完了を返す</text>
+
+<!-- 16: data -> FileX (close) -->
+<line class="msg" x1="1010" y1="770" x2="1470" y2="770"/>
+<text class="msg-label" x="1015" y="765">⑯ fx_file_close(&amp;file)</text>
+
+<!-- 17: self-processing (FileX) -->
+<rect class="self-tick-file" x="1463" y="800" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1485" y="819">⑰ ファイルを閉じる</text>
+
+<!-- 18: FileX -> data (return) -->
+<line class="msg-return" x1="1470" y1="860" x2="1010" y2="860"/>
+<text class="msg-label" x="1015" y="855">⑱ クローズ結果を返す</text>
+
+<!-- mutex-protected span: write (data <-> 共有データ) -->
+<rect class="mutex-span" x="765" y="875" width="260" height="120" rx="6"/>
+<text class="mutex-label" x="775" y="895">TX_MUTEXロック区間</text>
+
+<!-- 19: data -> 共有データ (write, mutex locked) -->
+<line class="msg" x1="1010" y1="935" x2="780" y2="935"/>
+<text class="msg-label" x="805" y="930">⑲ 結果を書き込む</text>
+<text class="msg-label" x="805" y="945">　set_save_status(OP_SUCCESS)を呼ぶ</text>
+
+<!-- 20: 共有データ -> data (return) -->
+<line class="msg-return" x1="780" y1="980" x2="1010" y2="980"/>
+<text class="msg-label" x="805" y="975">⑳ 書き込み完了</text>
+
+<!-- 21: self-processing (system) — timer fires, NOT part of the mutex-locked region -->
+<rect class="self-tick" x="543" y="1020" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="1039">㉑ GX_EVENT_TIMER発火</text>
+
+<!-- mutex-protected span: read (system <-> 共有データ) -->
+<rect class="mutex-span" x="535" y="1070" width="260" height="120" rx="6"/>
+<text class="mutex-label" x="545" y="1090">TX_MUTEXロック区間</text>
+
+<!-- 22: system -> 共有データ (read, mutex locked) -->
+<line class="msg" x1="550" y1="1130" x2="780" y2="1130"/>
+<text class="msg-label" x="555" y="1125">㉒ 共有データを確認</text>
+<text class="msg-label" x="555" y="1140">　get_save_status(&amp;out)を呼ぶ</text>
+
+<!-- 23: 共有データ -> system (return) -->
+<line class="msg-return" x1="780" y1="1175" x2="550" y2="1175"/>
+<text class="msg-label" x="555" y="1170">㉓ 結果を返す</text>
+
+<!-- 24: self-processing (system) -->
+<rect class="self-tick" x="543" y="1220" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="1230">㉔ D03を閉じ(hide)</text>
+<text class="msg-label" x="565" y="1244">　画面遷移はせず同じ画面に留まる</text>
+
+<!-- 25: system -> user (return) -->
+<line class="msg-return" x1="550" y1="1290" x2="90" y2="1290"/>
+<text class="msg-label" x="95" y="1280">㉕ 画面が更新される</text>
+<text class="msg-label" x="95" y="1305">　(D03が閉じ、呼び出し元の画面(S04/S05)に留まる)</text>
+
+<!-- Legend -->
+<line x1="20" y1="1322" x2="1780" y2="1322" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<rect class="actor-box" x="20" y="1335" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1347" fill="var(--text-main)" font-weight="400">スレッド</text>
+
+<rect class="actor-box-ext" x="200" y="1335" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="224" y="1347" fill="var(--text-main)" font-weight="400">外部ライブラリ/OS</text>
+
+<rect class="actor-box-mem" x="380" y="1335" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="404" y="1347" fill="var(--text-main)" font-weight="400">共有データ</text>
+
+<rect class="actor-box-lib" x="560" y="1335" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="584" y="1347" fill="var(--text-main)" font-weight="400">エンコードライブラリ</text>
+
+<rect class="self-tick" x="20" y="1370" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1382" fill="var(--text-main)" font-weight="400">システム処理</text>
+
+<rect class="self-tick-file" x="200" y="1370" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="224" y="1382" fill="var(--text-main)" font-weight="400">FileX処理</text>
+
+<rect class="self-tick-lib" x="380" y="1370" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="404" y="1382" fill="var(--text-main)" font-weight="400">libpng処理</text>
+
+<rect class="mutex-span" x="560" y="1370" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="584" y="1382">ロック区間</text>
+
+</svg>

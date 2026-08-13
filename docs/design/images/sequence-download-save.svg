@@ -1,0 +1,182 @@
+<svg viewBox="0 0 1350 1090" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>取得開始のシーケンス 2/2: FileX保存 → D02表示</title>
+<desc>ユーザー、GUIXシステムスレッド、共有データ(RAM、TX_MUTEXで保護)、データ管理スレッド、FileX、Windowsファイルシステムの6本のライフラインの間で、HTTP転送スレッドから受け取ったダウンロード済みデータをデータ管理スレッドがfx_file_create・fx_file_write・fx_file_closeでFileXに保存し、共有データへのTX_MUTEXロック書き込み、GUIXシステムスレッドのGX_EVENT_TIMERによる共有データへのTX_MUTEXロック読み込みを経て、D02(取得結果パネル)を表示するまでのメッセージのやり取りを示す。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-ext { fill: var(--box-fill-ext); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-mem { fill: var(--box-fill-mem); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-file { fill: var(--tick-fill-file); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .mutex-span { fill: var(--mutex-fill); stroke: var(--mutex-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .mutex-label { font-size: 10.5px; font-weight: 700; fill: var(--mutex-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-ext: #f3f4f6; --box-fill-mem: #fee2e2; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-file: #dbeafe;
+    --arrow-color: #4c1d95; --mutex-color: #b91c1c; --mutex-fill: rgba(185,28,28,0.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-file: #1e3a5f;
+    --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-file: #1e3a5f;
+      --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1350" height="1090" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIXシステム<tspan x="320" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-mem" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">共有データ<tspan x="550" dy="14">(RAM)</tspan></text>
+
+<rect class="actor-box" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">データ管理<tspan x="780" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-ext" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="41">FileX</text>
+
+<rect class="actor-box-ext" x="1170" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1240" y="34">Windows<tspan x="1240" dy="14">ファイルシステム</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="990"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="990"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="990"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="990"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="990"/>
+<line class="lifeline" x1="1240" y1="70" x2="1240" y2="990"/>
+
+<!-- Title -->
+<rect x="5" y="75" width="260" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">取得開始 2/2: FileX保存 → D02表示</text>
+
+<!-- 1: self-processing (データ管理スレッド) -->
+<rect class="self-tick" x="773" y="110" width="14" height="30" rx="3"/>
+<text class="msg-label" x="795" y="129">① TX_QUEUEで受け取った指示を処理(ファイル名、データ参照)</text>
+
+<!-- 2: データ管理スレッド -> FileX (create) -->
+<line class="msg" x1="780" y1="170" x2="1010" y2="170"/>
+<text class="msg-label" x="785" y="165">② fx_file_create(&amp;file, name)</text>
+
+<!-- 3: self-processing (FileX) -->
+<rect class="self-tick-file" x="1003" y="200" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1025" y="219">③ 新規ファイルを作る</text>
+
+<!-- 4: FileX -> データ管理スレッド (return) -->
+<line class="msg-return" x1="1010" y1="260" x2="780" y2="260"/>
+<text class="msg-label" x="785" y="255">④ 作成結果(status)を返す</text>
+
+<!-- 5: データ管理スレッド -> FileX (write) -->
+<line class="msg" x1="780" y1="300" x2="1010" y2="300"/>
+<text class="msg-label" x="785" y="295">⑤ fx_file_write(&amp;file, buf, size, &amp;actual)</text>
+
+<!-- 6: FileX -> Windowsファイルシステム -->
+<line class="msg" x1="1010" y1="340" x2="1240" y2="340"/>
+<text class="msg-label" x="1015" y="335">⑥ 実ファイルへ書き込む(fx_win32_file_driver経由)</text>
+
+<!-- 7: Windowsファイルシステム -> FileX (return) -->
+<line class="msg-return" x1="1240" y1="380" x2="1010" y2="380"/>
+<text class="msg-label" x="1015" y="375">⑦ 書き込み結果を返す</text>
+
+<!-- 8: FileX -> データ管理スレッド (return) -->
+<line class="msg-return" x1="1010" y1="420" x2="780" y2="420"/>
+<text class="msg-label" x="785" y="415">⑧ 書き込み結果を返す</text>
+
+<!-- 9: データ管理スレッド -> FileX (close) -->
+<line class="msg" x1="780" y1="460" x2="1010" y2="460"/>
+<text class="msg-label" x="785" y="455">⑨ fx_file_close(&amp;file)</text>
+
+<!-- 10: self-processing (FileX) -->
+<rect class="self-tick-file" x="1003" y="490" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1025" y="509">⑩ ファイルを閉じる</text>
+
+<!-- 11: FileX -> データ管理スレッド (return) -->
+<line class="msg-return" x1="1010" y1="550" x2="780" y2="550"/>
+<text class="msg-label" x="785" y="545">⑪ クローズ結果を返す</text>
+
+<!-- mutex-protected span: write (データ管理スレッド <-> 共有データ) -->
+<rect class="mutex-span" x="535" y="565" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="545" y="585">TX_MUTEXロック区間</text>
+
+<!-- 12: データ管理スレッド -> 共有データ (write, mutex locked) -->
+<line class="msg" x1="780" y1="625" x2="550" y2="625"/>
+<text class="msg-label" x="575" y="620">⑫ set_download_status(...)を呼ぶ</text>
+
+<!-- 13: 共有データ -> データ管理スレッド (return) -->
+<line class="msg-return" x1="550" y1="660" x2="780" y2="660"/>
+<text class="msg-label" x="575" y="655">⑬ 書き込み完了</text>
+
+<!-- 14: self-processing (system) — timer fires, NOT part of the mutex-locked region -->
+<rect class="self-tick" x="313" y="700" width="14" height="30" rx="3"/>
+<text class="msg-label" x="335" y="719">⑭ GX_EVENT_TIMER発火</text>
+
+<!-- mutex-protected span: read (system <-> 共有データ) -->
+<rect class="mutex-span" x="305" y="750" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="315" y="770">TX_MUTEXロック区間</text>
+
+<!-- 15: system -> 共有データ (read, mutex locked) -->
+<line class="msg" x1="320" y1="805" x2="550" y2="805"/>
+<text class="msg-label" x="325" y="800">⑮ get_download_status(&amp;out)を呼ぶ</text>
+
+<!-- 16: 共有データ -> system (return) -->
+<line class="msg-return" x1="550" y1="845" x2="320" y2="845"/>
+<text class="msg-label" x="325" y="840">⑯ 結果を返す</text>
+
+<!-- 17: self-processing (system) -->
+<rect class="self-tick" x="313" y="890" width="14" height="30" rx="3"/>
+<text class="msg-label" x="335" y="900">⑰ D02を表示(show/front_move)</text>
+<text class="msg-label" x="335" y="914">　成功/失敗メッセージを確定</text>
+
+<!-- 18: system -> user (return) -->
+<line class="msg-return" x1="320" y1="960" x2="90" y2="960"/>
+<text class="msg-label" x="95" y="950">⑱ 画面が更新される</text>
+<text class="msg-label" x="95" y="975">　(D02が表示される)</text>
+
+<!-- Legend -->
+<line x1="20" y1="992" x2="1330" y2="992" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<rect class="actor-box" x="20" y="1005" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1017" fill="var(--text-main)" font-weight="400">スレッド</text>
+
+<rect class="actor-box-ext" x="180" y="1005" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="204" y="1017" fill="var(--text-main)" font-weight="400">外部ライブラリ/OS</text>
+
+<rect class="actor-box-mem" x="340" y="1005" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="364" y="1017" fill="var(--text-main)" font-weight="400">共有データ</text>
+
+<rect class="self-tick" x="20" y="1040" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="44" y="1052" fill="var(--text-main)" font-weight="400">システム処理</text>
+
+<rect class="self-tick-file" x="180" y="1040" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="204" y="1052" fill="var(--text-main)" font-weight="400">FileX処理</text>
+
+<rect class="mutex-span" x="340" y="1040" width="18" height="14" rx="3"/>
+<text class="mutex-label" x="364" y="1052">ロック区間</text>
+
+</svg>

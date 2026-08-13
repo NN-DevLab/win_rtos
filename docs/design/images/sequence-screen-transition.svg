@@ -1,0 +1,119 @@
+<svg viewBox="0 0 700 780" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>画面遷移のシーケンス(進む/戻る)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッドの3本のライフラインの間で、ボタンタッチからGX_EVENTの送信、イベント処理、push/attachまたはdetach/popによる画面切り替え、画面更新までのメッセージのやり取りを示す。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-stroke: #333333; --tick-fill: #fef3c7;
+    --arrow-color: #4c1d95;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+    --arrow-color: #c4b5fd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+      --arrow-color: #c4b5fd;
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="700" height="780" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="40" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="110" y="41">ユーザー</text>
+
+<rect class="actor-box" x="280" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="350" y="34">GUIX入力<tspan x="350" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="520" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="590" y="34">GUIXシステム<tspan x="590" dy="14">スレッド</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="110" y1="70" x2="110" y2="770"/>
+<line class="lifeline" x1="350" y1="70" x2="350" y2="770"/>
+<line class="lifeline" x1="590" y1="70" x2="590" y2="770"/>
+
+<!-- ============ 進む ============ -->
+<rect x="5" y="75" width="260" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">進む(例: S01 → S02)</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="110" x2="350" y2="110"/>
+<text class="msg-label" x="115" y="105">① 「次へ」系ボタンをタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="150" x2="590" y2="150"/>
+<text class="msg-label" x="355" y="145">② GX_EVENTをキューに送る</text>
+
+<!-- 3,4,5: self-processing on system lifeline -->
+<rect class="self-tick" x="583" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="190">③ イベントを処理し</text>
+<text class="msg-label" x="612" y="204">　ハンドラを呼ぶ</text>
+
+<line class="lifeline" x1="590" y1="210" x2="590" y2="225" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="225" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="235">④ push(&amp;現在画面)</text>
+<text class="msg-label" x="612" y="249">　→ 切り離し・記憶</text>
+
+<line class="lifeline" x1="590" y1="255" x2="590" y2="270" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="270" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="280">⑤ attach(root, &amp;次の画面)</text>
+<text class="msg-label" x="612" y="294">　→ 次の画面を表示</text>
+
+<!-- 6: system -> user (return) -->
+<line class="msg-return" x1="590" y1="330" x2="110" y2="330"/>
+<text class="msg-label" x="115" y="325">⑥ 画面が更新される</text>
+
+<line x1="10" y1="365" x2="690" y2="365" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<!-- ============ 戻る ============ -->
+<rect x="5" y="380" width="90" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="395">戻る</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="415" x2="350" y2="415"/>
+<text class="msg-label" x="115" y="410">① 「戻る」ボタンをタッチ</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="455" x2="590" y2="455"/>
+<text class="msg-label" x="355" y="450">② GX_EVENTをキューに送る</text>
+
+<!-- 3,4,5: self-processing -->
+<rect class="self-tick" x="583" y="485" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="495">③ イベントを処理し</text>
+<text class="msg-label" x="612" y="509">　ハンドラを呼ぶ</text>
+
+<line class="lifeline" x1="590" y1="515" x2="590" y2="530" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="530" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="540">④ detach(&amp;今の画面)</text>
+<text class="msg-label" x="612" y="554">　→ 切り離し</text>
+
+<line class="lifeline" x1="590" y1="560" x2="590" y2="575" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="575" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="585">⑤ pop()</text>
+<text class="msg-label" x="612" y="599">　→ 記憶していた画面を復元</text>
+
+<!-- 6: system -> user (return) -->
+<line class="msg-return" x1="590" y1="640" x2="110" y2="640"/>
+<text class="msg-label" x="115" y="635">⑥ 画面が更新される</text>
+
+</svg>

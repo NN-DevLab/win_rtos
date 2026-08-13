@@ -1,0 +1,161 @@
+<svg viewBox="0 0 1580 800" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>取得開始のシーケンス 1/2: ダウンロード(S02 → HTTP転送スレッド)</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッド、HTTP転送スレッド、NetX Duo、同一LAN内の機器、データ管理スレッドの7本のライフラインの間で、「取得開始」ボタンのタッチからGX_EVENTの送信、HTTP転送スレッドへのダウンロード指示(TX_QUEUE)、NetX Duo経由でのnx_http_client_get_start、レスポンスボディをnx_http_client_get_packetで受信しきるまで繰り返すループ、データ管理スレッドへのTX_QUEUEでの書き込み指示までのメッセージのやり取りを示す。FileXへの保存とD02表示は別図(取得開始のシーケンス2/2)で扱う。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-ext { fill: var(--box-fill-ext); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-net { fill: var(--tick-fill-net); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .loop-span { fill: var(--loop-fill); stroke: var(--loop-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .loop-label { font-size: 10.5px; font-weight: 700; fill: var(--loop-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-ext: #f3f4f6; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-net: #dbeafe;
+    --arrow-color: #4c1d95;
+    --loop-color: #1d4ed8; --loop-fill: rgba(29,78,216,0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-ext: #383838; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-net: #1e3a5f;
+    --arrow-color: #c4b5fd;
+    --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-ext: #383838; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-net: #1e3a5f;
+      --arrow-color: #c4b5fd;
+      --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1580" height="800" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIX入力<tspan x="320" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">GUIXシステム<tspan x="550" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">HTTP転送<tspan x="780" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-ext" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="41">NetX Duo</text>
+
+<rect class="actor-box-ext" x="1170" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1240" y="34">同一LAN内<tspan x="1240" dy="14">の機器</tspan></text>
+
+<rect class="actor-box" x="1400" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1470" y="34">データ管理<tspan x="1470" dy="14">スレッド</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="723"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="723"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="723"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="723"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="723"/>
+<line class="lifeline" x1="1240" y1="70" x2="1240" y2="723"/>
+<line class="lifeline" x1="1470" y1="70" x2="1470" y2="723"/>
+
+<!-- Title -->
+<rect x="5" y="75" width="230" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">取得開始 1/2: ダウンロード</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="90" y1="110" x2="320" y2="110"/>
+<text class="msg-label" x="95" y="105">① 「取得開始」ボタンをタッチ(ファイル選択中)</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="320" y1="150" x2="550" y2="150"/>
+<text class="msg-label" x="325" y="145">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing (system) -->
+<rect class="self-tick" x="543" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="190">③ イベントを処理し</text>
+<text class="msg-label" x="565" y="204">　選択中ファイルのIP+パスを特定</text>
+
+<!-- 4: system -> HTTP転送スレッド -->
+<line class="msg" x1="550" y1="240" x2="780" y2="240"/>
+<text class="msg-label" x="575" y="235">④ TX_QUEUEでダウンロード指示(IP、パス)</text>
+
+<!-- 5: HTTP転送スレッド -> NetX Duo -->
+<line class="msg" x1="780" y1="280" x2="1010" y2="280"/>
+<text class="msg-label" x="785" y="275">⑤ nx_http_client_get_start(ip, resource, ...)を呼ぶ</text>
+
+<!-- 6: NetX Duo -> 同一LAN内の機器 -->
+<line class="msg" x1="1010" y1="320" x2="1240" y2="320"/>
+<text class="msg-label" x="1015" y="315">⑥ HTTP GETリクエスト</text>
+
+<!-- 7: 同一LAN内の機器 -> NetX Duo (return) -->
+<line class="msg-return" x1="1240" y1="360" x2="1010" y2="360"/>
+<text class="msg-label" x="1015" y="355">⑦ レスポンスヘッダを返す</text>
+
+<!-- 8: NetX Duo -> HTTP転送スレッド (return) -->
+<line class="msg-return" x1="1010" y1="400" x2="780" y2="400"/>
+<text class="msg-label" x="785" y="395">⑧ 開始結果を返す</text>
+
+<!-- Loop: receive body until done -->
+<rect class="loop-span" x="740" y="415" width="590" height="250" rx="6"/>
+<text class="loop-label" x="750" y="435">loop: ボディを受信しきるまで繰り返す</text>
+
+<!-- 9: HTTP転送スレッド -> NetX Duo -->
+<line class="msg" x1="780" y1="470" x2="1010" y2="470"/>
+<text class="msg-label" x="785" y="465">⑨ nx_http_client_get_packet(&amp;packet, ...)を呼ぶ</text>
+
+<!-- 10: NetX Duo -> 同一LAN内の機器 -->
+<line class="msg" x1="1010" y1="510" x2="1240" y2="510"/>
+<text class="msg-label" x="1015" y="505">⑩ (継続受信)</text>
+
+<!-- 11: 同一LAN内の機器 -> NetX Duo (return) -->
+<line class="msg-return" x1="1240" y1="550" x2="1010" y2="550"/>
+<text class="msg-label" x="1015" y="545">⑪ ボディパケットを返す</text>
+
+<!-- 12: NetX Duo -> HTTP転送スレッド (return) -->
+<line class="msg-return" x1="1010" y1="590" x2="780" y2="590"/>
+<text class="msg-label" x="785" y="585">⑫ 受信パケットを返す</text>
+
+<!-- 13: self-processing (HTTP転送スレッド) -->
+<rect class="self-tick-net" x="773" y="620" width="14" height="30" rx="3"/>
+<text class="msg-label" x="795" y="639">⑬ パケットの中身をバッファに追記</text>
+
+<!-- 14: HTTP転送スレッド -> データ管理スレッド -->
+<line class="msg" x1="780" y1="695" x2="1470" y2="695"/>
+<text class="msg-label" x="785" y="690">⑭ TX_QUEUEで書き込み指示(ファイル名、受信データ参照)</text>
+
+<!-- Legend -->
+<line x1="20" y1="725" x2="1560" y2="725" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<rect class="actor-box" x="20" y="735" width="18" height="14" rx="3"/>
+<text class="loop-label" x="44" y="747" fill="var(--text-main)" font-weight="400">スレッド</text>
+
+<rect class="actor-box-ext" x="180" y="735" width="18" height="14" rx="3"/>
+<text class="loop-label" x="204" y="747" fill="var(--text-main)" font-weight="400">外部ライブラリ/OS</text>
+
+<rect class="self-tick-net" x="340" y="735" width="18" height="14" rx="3"/>
+<text class="loop-label" x="364" y="747" fill="var(--text-main)" font-weight="400">HTTP転送処理</text>
+
+<rect class="loop-span" x="500" y="735" width="18" height="14" rx="3"/>
+<text class="loop-label" x="524" y="747" fill="var(--text-main)" font-weight="400">繰り返し区間</text>
+
+</svg>

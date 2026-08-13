@@ -1,6 +1,6 @@
 <svg viewBox="0 0 720 600" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
 <title>システム構成図(アプリ層・ミドル層・ドライバ層・デバイス層)</title>
-<desc>アプリ層はユーザアプリとGUIXからなり、ユーザアプリがミドル層のNetX Duo(FTP/HTTPクライアント)とFileXを呼び出す。GUIXは表示のみを担当する。ミドル層はドライバ層のNpcapドライバとfx_win32_file_driverにつながり、ドライバ層はデバイス層の同一LAN内のPCとWindowsファイルシステムにつながる。</desc>
+<desc>アプリ層はユーザアプリ・GUIX・libpng+zlibからなり、ユーザアプリがミドル層のNetX Duo(FTP/HTTPクライアント)とFileXを呼び出す。GUIXは表示のみを、libpng+zlibは合成画像のPNGエンコードのみを担当し、どちらもドライバ層を持たずアプリ層内で完結する。ミドル層はドライバ層のNpcapドライバとfx_win32_file_driverにつながり、ドライバ層はデバイス層の同一LAN内のPCとWindowsファイルシステムにつながる。</desc>
 <style>
   .layer-bg { fill: var(--layer-fill); stroke: var(--layer-stroke); stroke-width: 1; }
   .layer-label { font-size: 13px; font-weight: 700; fill: var(--text-sub); }
@@ -47,9 +47,13 @@
 <rect class="layer-bg" x="20" y="480" width="680" height="100" rx="8"/>
 <text class="layer-label" x="34" y="500">デバイス層</text>
 
-<!-- App layer: GUIX (display only) on top, ユーザアプリ below (spans full width, calls into NetX Duo/FileX) -->
-<rect class="box" x="275" y="50" width="150" height="45" rx="6"/>
-<text class="box-text" x="350" y="77">GUIX(表示)</text>
+<!-- App layer: GUIX (display only) and libpng+zlib (PNG encode only) on top, both have no driver stack; ユーザアプリ below (spans full width, calls into NetX Duo/FileX) -->
+<rect class="box" x="215" y="50" width="150" height="45" rx="6"/>
+<text class="box-text" x="290" y="77">GUIX(表示)</text>
+
+<rect class="box" x="415" y="50" width="150" height="45" rx="6"/>
+<text class="box-text" x="490" y="70">libpng+zlib</text>
+<text class="box-text" x="490" y="86">(PNGエンコード)</text>
 
 <rect class="box" x="50" y="120" width="590" height="50" rx="6"/>
 <text class="box-text" x="345" y="150">ユーザアプリ(S01〜S05・D01〜D05)</text>
@@ -83,7 +87,9 @@
 
 <!-- Connections: all straight, right-angle only (no diagonals) -->
 <!-- GUIX <-> ユーザアプリ -->
-<line class="conn" x1="350" y1="95" x2="350" y2="120"/>
+<line class="conn" x1="290" y1="95" x2="290" y2="120"/>
+<!-- libpng+zlib <-> ユーザアプリ -->
+<line class="conn" x1="490" y1="95" x2="490" y2="120"/>
 <!-- ユーザアプリ -> FTP -->
 <line class="conn" x1="125" y1="170" x2="125" y2="255"/>
 <!-- ユーザアプリ -> HTTP -->

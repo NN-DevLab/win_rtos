@@ -7,6 +7,9 @@
 - [0001. プラットフォームにWindows(Win32シミュレータ)を採用する](0001-windows-platform.md)
 - [0002. 画像取得は「FTPで探索、HTTPで転送」の二段構成にする](0002-ftp-discovery-http-transfer.md)
 - [0003. PNG保存(エンコード)にlibpngを組み込む](0003-libpng-for-png-encoding.md)
+- [0004. PNGエンコード(libpng)とFileXの間に書き込みIFを挟んで依存を分離する](0004-png-encode-filex-write-sink.md)
+- [0005. 機器検索は自分のサブネット内を総当たりスキャンする](0005-subnet-scan-device-discovery.md)(→ 0006に置き換え)
+- [0006. 機器検索(スキャン)をやめ、IPアドレス直接指定に変更する](0006-fixed-ip-connect-instead-of-scan.md)
 
 ## 目的
 

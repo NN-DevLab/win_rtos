@@ -2,12 +2,14 @@
   <rect x="1" y="1" width="438" height="338" fill="#ffffff" stroke="#333333" stroke-width="2"/>
   <text x="14" y="24" font-size="14" font-weight="bold" fill="#333333">画像取得画面</text>
 
-  <rect x="20" y="36" width="400" height="250" fill="#f5f5f5" stroke="#333333" stroke-width="1.5"/>
-  <text x="32" y="58" font-size="13" fill="#333333">機器一覧</text>
-  <text x="32" y="76" font-size="11" fill="#888888">(機器→フォルダ→ファイルを掘って表示)</text>
+  <text x="20" y="42" font-size="11" fill="#555555">接続状態: 接続済み(192.168.1.10)</text>
+
+  <rect x="20" y="52" width="400" height="234" fill="#f5f5f5" stroke="#333333" stroke-width="1.5"/>
+  <text x="32" y="74" font-size="13" fill="#333333">フォルダ一覧</text>
+  <text x="32" y="92" font-size="11" fill="#888888">(フォルダ→ファイルを掘って表示)</text>
 
   <rect x="20" y="300" width="115" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
-  <text x="77" y="319" font-size="11" fill="#333333" text-anchor="middle">機器検索</text>
+  <text x="77" y="319" font-size="11" fill="#333333" text-anchor="middle">接続</text>
 
   <rect x="160" y="300" width="120" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
   <text x="220" y="319" font-size="11" fill="#333333" text-anchor="middle">ファイル情報</text>

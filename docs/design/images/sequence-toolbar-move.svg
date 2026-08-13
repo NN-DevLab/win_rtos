@@ -1,0 +1,143 @@
+<svg viewBox="0 0 900 930" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>D01「移動」のシーケンス</title>
+<desc>ユーザー、GUIX入力イベントスレッド、GUIXシステムスレッドの3本のライフラインの間で、D01表示中に「移動」をタッチしてから移動モードに入るまでの流れと、画像をドラッグ(PEN_DOWN→PEN_DRAGの繰り返し→PEN_UP)して位置を動かし、編集内容ありのフラグを立てて保存ボタンを有効にするまでの流れを示す。gx_widget_shiftでドラッグ量だけウィジェットをずらす。ワーカースレッドは登場せず、GUIXシステムスレッドの中で完結する。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .loop-span { fill: var(--loop-fill); stroke: var(--loop-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .loop-label { font-size: 10.5px; font-weight: 700; fill: var(--loop-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-stroke: #333333; --tick-fill: #fef3c7;
+    --arrow-color: #4c1d95;
+    --loop-color: #1d4ed8; --loop-fill: rgba(29,78,216,0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+    --arrow-color: #c4b5fd;
+    --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-stroke: #8ab4f8; --tick-fill: #78350f;
+      --arrow-color: #c4b5fd;
+      --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="900" height="930" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="40" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="110" y="41">ユーザー</text>
+
+<rect class="actor-box" x="280" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="350" y="34">GUIX入力<tspan x="350" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="520" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="590" y="34">GUIXシステム<tspan x="590" dy="14">スレッド</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="110" y1="70" x2="110" y2="900"/>
+<line class="lifeline" x1="350" y1="70" x2="350" y2="900"/>
+<line class="lifeline" x1="590" y1="70" x2="590" y2="900"/>
+
+<!-- ============ 「移動」を押す→モードに入る ============ -->
+<rect x="5" y="75" width="230" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">「移動」を押す → モードに入る</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="110" x2="350" y2="110"/>
+<text class="msg-label" x="115" y="105">① 「移動」をタッチ(D01表示中)</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="150" x2="590" y2="150"/>
+<text class="msg-label" x="355" y="145">② GX_EVENTをキューに送る</text>
+
+<!-- 3: self-processing -->
+<rect class="self-tick" x="583" y="180" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="190">③ イベントを処理し</text>
+<text class="msg-label" x="612" y="204">　「移動」のハンドラを呼ぶ</text>
+
+<!-- 4: self-processing -->
+<line class="lifeline" x1="590" y1="210" x2="590" y2="225" stroke-dasharray="none"/>
+<rect class="self-tick" x="583" y="225" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="245">④ 移動モードのフラグを立てる</text>
+
+<!-- 5: system -> user (return) -->
+<line class="msg-return" x1="590" y1="300" x2="110" y2="300"/>
+<text class="msg-label" x="115" y="290">⑤ 画面が更新される</text>
+<text class="msg-label" x="115" y="315">　(「移動」アイコンがハイライト)</text>
+
+<line x1="10" y1="345" x2="890" y2="345" stroke="var(--box-stroke)" stroke-width="1" stroke-dasharray="3 3"/>
+
+<!-- ============ ドラッグで画像を動かす ============ -->
+<rect x="5" y="360" width="210" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="375">ドラッグで画像を動かす</text>
+
+<!-- 1: user -> input -->
+<line class="msg" x1="110" y1="395" x2="350" y2="395"/>
+<text class="msg-label" x="115" y="390">① 画像にタッチ(PEN_DOWN)</text>
+
+<!-- 2: input -> system -->
+<line class="msg" x1="350" y1="435" x2="590" y2="435"/>
+<text class="msg-label" x="355" y="430">② GX_EVENT(PEN_DOWN)をキューに送る</text>
+
+<!-- 3: self-processing -->
+<rect class="self-tick" x="583" y="465" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="475">③ 移動モード中と判定</text>
+<text class="msg-label" x="612" y="489">　開始位置を記憶</text>
+
+<!-- Loop: while dragging -->
+<rect class="loop-span" x="80" y="520" width="790" height="205" rx="6"/>
+<text class="loop-label" x="90" y="540">loop: 指が動くたびに繰り返す</text>
+
+<!-- 4: user -> input -->
+<line class="msg" x1="110" y1="575" x2="350" y2="575"/>
+<text class="msg-label" x="115" y="570">④ 指を動かす(PEN_DRAG)</text>
+
+<!-- 5: input -> system -->
+<line class="msg" x1="350" y1="615" x2="590" y2="615"/>
+<text class="msg-label" x="355" y="610">⑤ GX_EVENT(PEN_DRAG)をキューに送る</text>
+
+<!-- 6: self-processing -->
+<rect class="self-tick" x="583" y="645" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="655">⑥ gx_widget_shift(&amp;image, dx, dy,</text>
+<text class="msg-label" x="612" y="669">　GX_TRUE)を呼ぶ</text>
+
+<!-- 7: system -> user (return) -->
+<line class="msg-return" x1="590" y1="700" x2="110" y2="700"/>
+<text class="msg-label" x="115" y="695">⑦ 画面が更新される(画像が追従して動く)</text>
+
+<!-- 8: user -> input -->
+<line class="msg" x1="110" y1="755" x2="350" y2="755"/>
+<text class="msg-label" x="115" y="750">⑧ 指を離す(PEN_UP)</text>
+
+<!-- 9: input -> system -->
+<line class="msg" x1="350" y1="795" x2="590" y2="795"/>
+<text class="msg-label" x="355" y="790">⑨ GX_EVENT(PEN_UP)をキューに送る</text>
+
+<!-- 10: self-processing -->
+<rect class="self-tick" x="583" y="825" width="14" height="30" rx="3"/>
+<text class="msg-label" x="612" y="844">⑩ 「編集内容あり」フラグを立てる</text>
+
+<!-- 11: system -> user (return) -->
+<line class="msg-return" x1="590" y1="875" x2="110" y2="875"/>
+<text class="msg-label" x="115" y="895">⑪ 画面が更新される(保存ボタンがハイライト/有効になる)</text>
+
+</svg>

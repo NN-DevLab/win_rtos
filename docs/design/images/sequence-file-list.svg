@@ -1,0 +1,158 @@
+<svg viewBox="0 0 1580 900" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img">
+<title>ファイル一覧読み込みのシーケンス(S03)</title>
+<desc>ユーザー(暗黙)、GUIXシステムスレッド、共有データ(RAM、TX_MUTEXで保護)、データ管理スレッド、FileX、Windowsファイルシステムのライフラインの間で、S03画面のハンドラが呼ばれてから、データ管理スレッドへの一覧取得指示(TX_QUEUE)、フォルダ内の全ファイルについてfx_directory_first_full_entry_find/fx_directory_next_full_entry_findを繰り返すループ、共有データへのTX_MUTEXロック書き込み、GUIXシステムスレッドのGX_EVENT_TIMERによる共有データへのTX_MUTEXロック読み込み、保存済み画像の一覧表示までのメッセージのやり取りを示す。S02のフォルダ一覧(FTP)とは別物で、こちらはローカル(FileX)に保存済みのファイルを列挙する。</desc>
+<style>
+  .actor-box { fill: var(--box-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-ext { fill: var(--box-fill-ext); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-box-mem { fill: var(--box-fill-mem); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .actor-text { font-size: 13px; font-weight: 700; fill: var(--text-main); text-anchor: middle; }
+  .lifeline { stroke: var(--box-stroke); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .msg { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .msg-return { stroke: var(--arrow-color); stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+  .msg-label { font-size: 11.5px; fill: var(--text-main); }
+  .self-tick { fill: var(--tick-fill); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-data { fill: var(--tick-fill-data); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .self-tick-file { fill: var(--tick-fill-file); stroke: var(--box-stroke); stroke-width: 1.5; }
+  .section-title { font-size: 14px; font-weight: 700; fill: var(--text-main); }
+  .mutex-span { fill: var(--mutex-fill); stroke: var(--mutex-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .mutex-label { font-size: 10.5px; font-weight: 700; fill: var(--mutex-color); }
+  .loop-span { fill: var(--loop-fill); stroke: var(--loop-color); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .loop-label { font-size: 10.5px; font-weight: 700; fill: var(--loop-color); }
+  :root {
+    --bg: #ffffff; --text-main: #1a1a1a;
+    --box-fill: #eef2ff; --box-fill-ext: #f3f4f6; --box-fill-mem: #fee2e2; --box-stroke: #333333;
+    --tick-fill: #fef3c7; --tick-fill-data: #dcfce7; --tick-fill-file: #dbeafe;
+    --arrow-color: #4c1d95; --mutex-color: #b91c1c; --mutex-fill: rgba(185,28,28,0.06);
+    --loop-color: #1d4ed8; --loop-fill: rgba(29,78,216,0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1e1e1e; --text-main: #e8e8e8;
+    --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+    --tick-fill: #78350f; --tick-fill-data: #14532d; --tick-fill-file: #1e3a5f;
+    --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+    --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1e1e1e; --text-main: #e8e8e8;
+      --box-fill: #2d3250; --box-fill-ext: #383838; --box-fill-mem: #5b1f1f; --box-stroke: #8ab4f8;
+      --tick-fill: #78350f; --tick-fill-data: #14532d; --tick-fill-file: #1e3a5f;
+      --arrow-color: #c4b5fd; --mutex-color: #f87171; --mutex-fill: rgba(248,113,113,0.10);
+      --loop-color: #60a5fa; --loop-fill: rgba(96,165,250,0.08);
+    }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow-color)"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1580" height="900" fill="var(--bg)"/>
+
+<!-- Actor headers -->
+<rect class="actor-box" x="20" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="90" y="41">ユーザー</text>
+
+<rect class="actor-box" x="250" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="320" y="34">GUIX入力<tspan x="320" dy="14">イベントスレッド</tspan></text>
+
+<rect class="actor-box" x="480" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="550" y="34">GUIXシステム<tspan x="550" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-mem" x="710" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="780" y="34">共有データ<tspan x="780" dy="14">(RAM)</tspan></text>
+
+<rect class="actor-box" x="940" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1010" y="34">データ管理<tspan x="1010" dy="14">スレッド</tspan></text>
+
+<rect class="actor-box-ext" x="1170" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1240" y="41">FileX</text>
+
+<rect class="actor-box-ext" x="1400" y="15" width="140" height="44" rx="6"/>
+<text class="actor-text" x="1470" y="34">Windows<tspan x="1470" dy="14">ファイルシステム</tspan></text>
+
+<!-- Lifelines -->
+<line class="lifeline" x1="90" y1="70" x2="90" y2="878"/>
+<line class="lifeline" x1="320" y1="70" x2="320" y2="878"/>
+<line class="lifeline" x1="550" y1="70" x2="550" y2="878"/>
+<line class="lifeline" x1="780" y1="70" x2="780" y2="878"/>
+<line class="lifeline" x1="1010" y1="70" x2="1010" y2="878"/>
+<line class="lifeline" x1="1240" y1="70" x2="1240" y2="878"/>
+<line class="lifeline" x1="1470" y1="70" x2="1470" y2="878"/>
+
+<!-- Title -->
+<rect x="5" y="75" width="200" height="22" fill="var(--bg)"/>
+<text class="section-title" x="10" y="90">S03 ファイル一覧読み込み</text>
+
+<!-- 1: self-processing (system) -->
+<rect class="self-tick" x="543" y="110" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="129">① S03画面のハンドラが呼ばれる(画面遷移処理の一部)</text>
+
+<!-- 2: system -> data -->
+<line class="msg" x1="550" y1="170" x2="1010" y2="170"/>
+<text class="msg-label" x="575" y="165">② TX_QUEUEで一覧取得指示</text>
+
+<!-- Loop: for each file in the folder -->
+<rect class="loop-span" x="970" y="185" width="470" height="250" rx="6"/>
+<text class="loop-label" x="980" y="205">loop: フォルダ内の全ファイルについて繰り返す</text>
+
+<!-- 3: data -> FileX -->
+<line class="msg" x1="1010" y1="240" x2="1240" y2="240"/>
+<text class="msg-label" x="1015" y="235">③ fx_directory_next_full_entry_find(...)を呼ぶ</text>
+
+<!-- 4: FileX -> Windowsファイルシステム -->
+<line class="msg" x1="1240" y1="280" x2="1470" y2="280"/>
+<text class="msg-label" x="1245" y="275">④ ディレクトリエントリを読む(fx_win32_file_driver経由)</text>
+
+<!-- 5: Windowsファイルシステム -> FileX (return) -->
+<line class="msg-return" x1="1470" y1="320" x2="1240" y2="320"/>
+<text class="msg-label" x="1245" y="315">⑤ エントリ情報を返す</text>
+
+<!-- 6: FileX -> data (return) -->
+<line class="msg-return" x1="1240" y1="360" x2="1010" y2="360"/>
+<text class="msg-label" x="1015" y="355">⑥ ファイル名を返す</text>
+
+<!-- 7: self-processing (data) -->
+<rect class="self-tick-data" x="1003" y="390" width="14" height="30" rx="3"/>
+<text class="msg-label" x="1025" y="409">⑦ 一覧バッファに追記</text>
+
+<!-- mutex-protected span: write (data <-> 共有データ) -->
+<rect class="mutex-span" x="765" y="450" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="775" y="470">TX_MUTEXロック区間</text>
+
+<!-- 8: data -> 共有データ (write, mutex locked) -->
+<line class="msg" x1="1010" y1="510" x2="780" y2="510"/>
+<text class="msg-label" x="805" y="505">⑧ set_file_list(...)を呼ぶ</text>
+
+<!-- 9: 共有データ -> data (return) -->
+<line class="msg-return" x1="780" y1="545" x2="1010" y2="545"/>
+<text class="msg-label" x="805" y="540">⑨ 書き込み完了</text>
+
+<!-- 10: self-processing (system) — timer fires, NOT part of the mutex-locked region -->
+<rect class="self-tick" x="543" y="585" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="604">⑩ GX_EVENT_TIMER発火</text>
+
+<!-- mutex-protected span: read (system <-> 共有データ) -->
+<rect class="mutex-span" x="535" y="635" width="260" height="110" rx="6"/>
+<text class="mutex-label" x="545" y="655">TX_MUTEXロック区間</text>
+
+<!-- 11: system -> 共有データ (read, mutex locked) -->
+<line class="msg" x1="550" y1="690" x2="780" y2="690"/>
+<text class="msg-label" x="555" y="685">⑪ get_file_list(&amp;out)を呼ぶ</text>
+
+<!-- 12: 共有データ -> system (return) -->
+<line class="msg-return" x1="780" y1="730" x2="550" y2="730"/>
+<text class="msg-label" x="555" y="725">⑫ 結果を返す</text>
+
+<!-- 13: self-processing (system) -->
+<rect class="self-tick" x="543" y="775" width="14" height="30" rx="3"/>
+<text class="msg-label" x="565" y="794">⑬ ファイル一覧エリアに表示</text>
+
+<!-- 14: system -> user (return) -->
+<line class="msg-return" x1="550" y1="845" x2="90" y2="845"/>
+<text class="msg-label" x="95" y="835">⑭ 画面が更新される</text>
+<text class="msg-label" x="95" y="860">　(保存済み画像の一覧が表示される)</text>
+
+</svg>
