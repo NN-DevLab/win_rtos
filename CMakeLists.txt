@@ -14,14 +14,6 @@ add_subdirectory(
     ${CMAKE_BINARY_DIR}/threadx
 )
 
-add_executable(win_rtos
-    app/main.c
-)
-
-target_link_libraries(win_rtos
-    threadx
-)
-
 # --- win_rtos_poc: NetX Duo + FileX + GUIX integration smoke test ---------
 
 # FileX has no ready CMake win32 port upstream; point it at our own
@@ -44,6 +36,19 @@ set(GUIX_CUSTOM_PORT ${CMAKE_CURRENT_LIST_DIR}/port/win32/guix)
 add_subdirectory(
     ${CMAKE_CURRENT_LIST_DIR}/repos/guix
     ${CMAKE_BINARY_DIR}/guix
+)
+
+add_executable(win_rtos WIN32
+    app/main.c
+    app/gui_main.c
+    app/s01_main.c
+)
+
+target_link_libraries(win_rtos
+    threadx
+    filex
+    netxduo
+    guix
 )
 
 # WIN32 (GUI subsystem): GUIX's win32 port supplies its own WinMain, which

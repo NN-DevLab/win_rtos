@@ -10,6 +10,7 @@
 - [0004. PNGエンコード(libpng)とFileXの間に書き込みIFを挟んで依存を分離する](0004-png-encode-filex-write-sink.md)
 - [0005. 機器検索は自分のサブネット内を総当たりスキャンする](0005-subnet-scan-device-discovery.md)(→ 0006に置き換え)
 - [0006. 機器検索(スキャン)をやめ、IPアドレス直接指定に変更する](0006-fixed-ip-connect-instead-of-scan.md)
+- [0007. 日本語フォント対応まで画面表示を英語/ローマ字の仮表示にする](0007-placeholder-english-text-pending-japanese-font.md)
 
 ## 目的
 

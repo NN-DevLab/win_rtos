@@ -1,11 +1,23 @@
-#include "tx_api.h"
+﻿#include "tx_api.h"
+#include "gx_api.h"
 #include <stdio.h>
+
+#include "gui_main.h"
 
 #define MAIN_THREAD_STACK_SIZE 4096
 
 /* メインスレッド */
 TX_THREAD main_thread;
 UCHAR main_thread_stack[MAIN_THREAD_STACK_SIZE];
+
+
+/**
+ * @brief ライブラリを初期化する
+ */
+void init_libraries()
+{
+    start_guix();
+}
 
 /**
  * @brief メインスレッドのエントリ関数
@@ -23,6 +35,10 @@ TX_THREAD *self;
 
     self = tx_thread_identify();
     printf("main_thread is %p\n", (void *)self);
+
+    init_libraries();
+
+    launch_gui_application();
 
     while (1)
     {
@@ -56,10 +72,8 @@ void tx_application_define(void *first_unused_memory)
  *
  * @return プロセスの終了コード
  */
-int main(void)
+int main(int argc, char **argv)
 {
-    printf("main start\n");
-
     tx_kernel_enter();
 
     return 0;
