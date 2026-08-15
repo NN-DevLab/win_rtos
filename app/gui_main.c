@@ -1,9 +1,14 @@
 ﻿#include "tx_api.h"
+#include "fx_api.h"
 #include "gx_api.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <windows.h>
 
 #include "gui_main.h"
+#include "data_thread.h"
+#include "filex_media.h"
 #include "s01_main.h"
 #include "s02_main.h"
 #include "s03_main.h"
@@ -15,6 +20,9 @@
 #include "d04_main.h"
 #include "d05_main.h"
 #include "d06_main.h"
+
+/* S03→S04で読み込み完了をポーリングするタイマーのID */
+#define ID_S03_IMAGE_LOAD_TIMER 303
 
 extern UINT win32_graphics_driver_setup_24xrgb(GX_DISPLAY *display);
 extern GX_FONT _gx_system_font_8bpp;
@@ -52,6 +60,104 @@ GX_FONT *font_table[] =
 
 /* 画面スタック用のメモリ(push/popできる深さは要素数/2) */
 static GX_WIDGET *screen_stack_memory[8];
+
+/* gx_image_reader_startが内部でピクセルバッファを確保するのに使うアロケータ。
+   GUIXはデフォルトでは何も登録しないため、未登録のままデコードすると
+   GX_SYSTEM_MEMORY_ERRORで失敗する。 */
+static VOID *gx_heap_allocate(ULONG size)
+{
+    return malloc((size_t)size);
+}
+
+static VOID gx_heap_release(VOID *memory)
+{
+    free(memory);
+}
+
+/* S03→S04で表示する、ランタイムデコード済みの画像。gx_pixelmap_dataが
+   NULLの間はまだ何も読み込んでいない(static変数なのでゼロ初期化される)。 */
+static GX_PIXELMAP s04_pixelmap;
+
+/* S04の画像表示エリアの描画関数。デコード済みなら中央でなく左上基準で描画する
+   (demo_guix_industrialのmain_screen_drawと同じパターン)。 */
+static VOID s04_image_window_draw(GX_WIDGET *widget)
+{
+GX_WINDOW *window = (GX_WINDOW *)widget;
+
+    gx_window_background_draw(window);
+
+    if (s04_pixelmap.gx_pixelmap_data)
+    {
+        gx_canvas_pixelmap_draw(window->gx_widget_size.gx_rectangle_left,
+                                 window->gx_widget_size.gx_rectangle_top, &s04_pixelmap);
+    }
+
+    gx_widget_children_draw(window);
+}
+
+/* データ管理スレッドにファイル読み込みを依頼する。パスを共有データに書き、
+   completeを0にリセットしてからキューでコマンドを送る。 */
+static void request_read_file(GX_CONST CHAR *path)
+{
+DATA_MANAGE_MESSAGE message;
+
+    tx_mutex_get(&data_manage_shared.mutex, TX_WAIT_FOREVER);
+    strncpy(data_manage_shared.path, path, DATA_MANAGE_PATH_MAX - 1);
+    data_manage_shared.path[DATA_MANAGE_PATH_MAX - 1] = 0;
+    data_manage_shared.complete = 0;
+    tx_mutex_put(&data_manage_shared.mutex);
+
+    message.command = DATA_MANAGE_COMMAND_READ_FILE;
+    tx_queue_send(&data_manage_thread_queue, &message, TX_WAIT_FOREVER);
+}
+
+/* ID_S03_IMAGE_LOAD_TIMERから呼ばれる。読み込みが完了していなければ何もしない。
+   完了していれば、成功時のみPNGデコードしてからタイマーを止め、S04へ遷移する。 */
+static void check_read_file_complete(void)
+{
+UINT complete;
+UINT status = FX_SUCCESS;
+ULONG size = 0;
+
+    tx_mutex_get(&data_manage_shared.mutex, TX_WAIT_FOREVER);
+    complete = data_manage_shared.complete;
+    if (complete)
+    {
+        status = data_manage_shared.status;
+        size = data_manage_shared.size;
+        if (status == FX_SUCCESS)
+        {
+            GX_IMAGE_READER reader;
+            UINT decode_status;
+
+            gx_image_reader_create(&reader, data_manage_shared.buffer, (INT)size,
+                                    GX_COLOR_FORMAT_24XRGB, 0);
+            decode_status = gx_image_reader_start(&reader, &s04_pixelmap);
+            if (decode_status != GX_SUCCESS)
+            {
+                printf("gui: gx_image_reader_start failed: 0x%x\n", decode_status);
+            }
+        }
+        data_manage_shared.complete = 0;
+    }
+    tx_mutex_put(&data_manage_shared.mutex);
+
+    if (!complete)
+    {
+        return;
+    }
+
+    if (status != FX_SUCCESS)
+    {
+        printf("gui: read_file failed, status=0x%x\n", status);
+    }
+
+    gx_system_timer_stop((GX_WIDGET *)&s03.window, ID_S03_IMAGE_LOAD_TIMER);
+
+    gx_system_screen_stack_push((GX_WIDGET *)&s03.window);
+    gx_widget_attach(&root, &s04.window);
+    gx_widget_show((GX_WIDGET *)&s04.window);
+}
 
 /* S01: 画像取得ボタンでS02へ、ビューアボタンでS03へ進む */
 static UINT s01_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
@@ -124,16 +230,27 @@ static UINT s03_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
         return GX_SUCCESS;
 
     case GX_SIGNAL(ID_S03_NEXT_BUTTON, GX_EVENT_CLICKED):
-        gx_system_screen_stack_push((GX_WIDGET *)&s03.window);
         if (s03.mode == S03_MODE_VIEWER)
         {
-            gx_widget_attach(&root, &s04.window);
-            gx_widget_show((GX_WIDGET *)&s04.window);
+            /* ファイル一覧が未実装のため、選択ファイルの代わりに固定のテスト
+               画像を読み込む(TODO: 一覧で選択したファイル名に差し替える)。
+               読み込み完了はID_S03_IMAGE_LOAD_TIMERのポーリングで検知し、
+               完了後にcheck_read_file_completeがS04へ遷移する。 */
+            request_read_file(FILEX_TEST_IMAGE_NAME);
+            gx_system_timer_start((GX_WIDGET *)&s03.window, ID_S03_IMAGE_LOAD_TIMER, 5, 5);
         }
         else
         {
+            gx_system_screen_stack_push((GX_WIDGET *)&s03.window);
             gx_widget_attach(&root, &s05.window);
             gx_widget_show((GX_WIDGET *)&s05.window);
+        }
+        return GX_SUCCESS;
+
+    case GX_EVENT_TIMER:
+        if (event_ptr->gx_event_payload.gx_event_timer_id == ID_S03_IMAGE_LOAD_TIMER)
+        {
+            check_read_file_complete();
         }
         return GX_SUCCESS;
 
@@ -282,6 +399,10 @@ void launch_gui_application()
 {
     GX_RECTANGLE root_size;
 
+    /* gx_image_reader_startがデコード結果のピクセルバッファを確保するのに使う。
+       登録しないままデコードするとGX_SYSTEM_MEMORY_ERRORで失敗する。 */
+    gx_system_memory_allocator_set(gx_heap_allocate, gx_heap_release);
+
     /* メイン画面を作成（windows32ドライバの場合はここで画面そのものが作られる） */
     gx_display_create(&main_disp, "main_disp", win32_graphics_driver_setup_24xrgb,
                        DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -316,6 +437,10 @@ void launch_gui_application()
     d04_create(&d04, (GX_WIDGET *)&root);
     d05_create(&d05, (GX_WIDGET *)&root);
     d06_create(&d06, (GX_WIDGET *)&root);
+
+    /* S04の画像表示エリアは、デコード済みpixelmap(s04_pixelmap)を描く
+       専用の描画関数に差し替える */
+    gx_widget_draw_set(&s04.image_window, s04_image_window_draw);
 
     /* 各画面のボタンクリックを画面遷移につなげる */
     gx_widget_event_process_set(&s01.window, s01_window_event_process);

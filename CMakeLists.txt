@@ -52,6 +52,10 @@ add_executable(win_rtos WIN32
     app/d04_main.c
     app/d05_main.c
     app/d06_main.c
+    app/data_thread.h
+    app/data_thread.c
+    app/filex_media.h
+    app/filex_media.c
 )
 
 target_link_libraries(win_rtos
@@ -59,6 +63,12 @@ target_link_libraries(win_rtos
     filex
     netxduo
     guix
+)
+
+# app/filex_media.c reads the seed test PNG from the source tree at runtime
+# (app/data/test.png), independent of the process's current working directory.
+target_compile_definitions(win_rtos PRIVATE
+    PROJECT_SOURCE_DIR="${CMAKE_CURRENT_LIST_DIR}"
 )
 
 # WIN32 (GUI subsystem): GUIX's win32 port supplies its own WinMain, which

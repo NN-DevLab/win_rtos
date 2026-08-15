@@ -1,8 +1,11 @@
 ﻿#include "tx_api.h"
+#include "fx_api.h"
 #include "gx_api.h"
 #include <stdio.h>
 
 #include "gui_main.h"
+#include "data_thread.h"
+#include "filex_media.h"
 
 #define MAIN_THREAD_STACK_SIZE 4096
 
@@ -16,6 +19,7 @@ UCHAR main_thread_stack[MAIN_THREAD_STACK_SIZE];
  */
 void init_libraries()
 {
+    fx_system_initialize();
     start_guix();
 }
 
@@ -29,7 +33,7 @@ void init_libraries()
  */
 void main_thread_entry(ULONG arg)
 {
-TX_THREAD *self;
+    TX_THREAD *self;
 
     (void)arg;
 
@@ -37,6 +41,10 @@ TX_THREAD *self;
     printf("main_thread is %p\n", (void *)self);
 
     init_libraries();
+
+    launch_filex_media();
+
+    launch_data_manage_thread();
 
     launch_gui_application();
 
@@ -74,6 +82,11 @@ void tx_application_define(void *first_unused_memory)
  */
 int main(int argc, char **argv)
 {
+    FILE *console_stream;
+
+    freopen_s(&console_stream, "win_rtos.log", "w", stdout);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
     tx_kernel_enter();
 
     return 0;

@@ -13,12 +13,11 @@ void s04_create(S04_SCREEN *screen, GX_WIDGET *parent)
                       GX_STYLE_BORDER_NONE, GX_ID_NONE, &rect);
     gx_widget_fill_color_set(&screen->window, GX_COLOR_ID_WHITE, GX_COLOR_ID_WHITE, GX_COLOR_ID_WHITE);
 
-    /* 画像表示エリア(未実装。実際はgx_image_reader_startでランタイムデコードして表示する想定) */
+    /* 画像表示エリア。描画関数はgui_main.cのs04_create呼び出し後にgx_widget_draw_setで差し替える */
     gx_utility_rectangle_define(&rect, 10, 10, DISPLAY_WIDTH - 10, 210);
-    gx_prompt_create(&screen->image_prompt, NULL, &screen->window, GX_ID_NONE,
-                      GX_STYLE_BORDER_THIN | GX_STYLE_TEXT_CENTER, GX_ID_NONE, &rect);
-    gx_prompt_text_color_set(&screen->image_prompt, GX_COLOR_ID_BLACK, GX_COLOR_ID_BLACK, GX_COLOR_ID_BLACK);
-    gx_prompt_text_set(&screen->image_prompt, "(Image display - not yet implemented)");
+    gx_window_create(&screen->image_window, "image_window", &screen->window,
+                      GX_STYLE_BORDER_THIN, GX_ID_NONE, &rect);
+    gx_widget_fill_color_set(&screen->image_window, GX_COLOR_ID_WHITE, GX_COLOR_ID_WHITE, GX_COLOR_ID_WHITE);
 
     /* 戻るボタン: S03(ファイル一覧画面)へ戻る */
     gx_utility_rectangle_define(&rect, 10, 220, 150, 260);
