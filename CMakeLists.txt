@@ -42,6 +42,16 @@ add_executable(win_rtos WIN32
     app/main.c
     app/gui_main.c
     app/s01_main.c
+    app/s02_main.c
+    app/s03_main.c
+    app/s04_main.c
+    app/s05_main.c
+    app/d01_main.c
+    app/d02_main.c
+    app/d03_main.c
+    app/d04_main.c
+    app/d05_main.c
+    app/d06_main.c
 )
 
 target_link_libraries(win_rtos

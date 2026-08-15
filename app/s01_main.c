@@ -22,17 +22,17 @@ void s01_create(S01_SCREEN *screen, GX_WIDGET *parent)
     gx_multi_line_text_view_text_set(&screen->description_view,
                                       "Get images from devices on the LAN, or view / merge saved images.");
 
-    /* 画像取得ボタン: S02へ遷移する(遷移処理は未実装) */
+    /* 画像取得ボタン: S02へ遷移する */
     gx_utility_rectangle_define(&rect, 10, 185, 235, 245);
     gx_text_button_create(&screen->acquire_button, "acquire_button", &screen->window,
-                           GX_ID_NONE, GX_STYLE_ENABLED, GX_ID_NONE, &rect);
+                           GX_ID_NONE, GX_STYLE_ENABLED, ID_S01_ACQUIRE_BUTTON, &rect);
     /* 日本語フォント未対応のため仮の英語表示(「画像取得」) */
     gx_text_button_text_set(&screen->acquire_button, "Acquire");
 
-    /* ビューアボタン: S03へ遷移する(遷移処理は未実装) */
+    /* ビューアボタン: S03へ遷移する(S03未実装のため遷移先なし) */
     gx_utility_rectangle_define(&rect, 245, 185, DISPLAY_WIDTH - 10, 245);
     gx_text_button_create(&screen->viewer_button, "viewer_button", &screen->window,
-                           GX_ID_NONE, GX_STYLE_ENABLED, GX_ID_NONE, &rect);
+                           GX_ID_NONE, GX_STYLE_ENABLED, ID_S01_VIEWER_BUTTON, &rect);
     /* 日本語フォント未対応のため仮の英語表示(「ビューア」) */
     gx_text_button_text_set(&screen->viewer_button, "Viewer");
 }

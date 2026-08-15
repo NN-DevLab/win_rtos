@@ -8,12 +8,15 @@
   <text x="32" y="74" font-size="13" fill="#333333">フォルダ一覧</text>
   <text x="32" y="92" font-size="11" fill="#888888">(フォルダ→ファイルを掘って表示)</text>
 
-  <rect x="20" y="300" width="115" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
-  <text x="77" y="319" font-size="11" fill="#333333" text-anchor="middle">接続</text>
+  <rect x="20" y="300" width="70" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="55" y="319" font-size="11" fill="#333333" text-anchor="middle">戻る</text>
 
-  <rect x="160" y="300" width="120" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
-  <text x="220" y="319" font-size="11" fill="#333333" text-anchor="middle">ファイル情報</text>
+  <rect x="100" y="300" width="90" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="145" y="319" font-size="11" fill="#333333" text-anchor="middle">接続</text>
 
-  <rect x="305" y="300" width="115" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
-  <text x="362" y="319" font-size="11" fill="#333333" text-anchor="middle">取得開始</text>
+  <rect x="200" y="300" width="120" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="260" y="319" font-size="11" fill="#333333" text-anchor="middle">ファイル情報</text>
+
+  <rect x="330" y="300" width="90" height="28" fill="#eef2ff" stroke="#333333" stroke-width="1"/>
+  <text x="375" y="319" font-size="11" fill="#333333" text-anchor="middle">取得開始</text>
 </svg>
