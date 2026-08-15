@@ -88,8 +88,8 @@ static UINT s02_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
 
     case GX_SIGNAL(ID_S02_CONNECT_BUTTON, GX_EVENT_CLICKED):
         /* S02はS01からのattachでroot直下の最前面に移動済みなので、D06も
-           付け直して最前面にしてから表示する(でないとS02の下に隠れる) */
-        gx_widget_attach(&root, &d06.window);
+           最前面に移動してから表示する(でないとS02の下に隠れる) */
+        gx_widget_front_move((GX_WIDGET *)&d06.window, GX_NULL);
         gx_widget_show((GX_WIDGET *)&d06.window);
         return GX_SUCCESS;
 
@@ -155,9 +155,9 @@ static UINT s04_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
         return GX_SUCCESS;
 
     case GX_SIGNAL(ID_S04_EDIT_BUTTON, GX_EVENT_CLICKED):
-        /* S04はS03からのattachでroot直下の最前面(最後尾)に移動済みなので、
-           D01も付け直して最前面にしてから表示する(でないとS04の下に隠れて見えない) */
-        gx_widget_attach(&root, &d01.window);
+        /* S04はS03からのattachでroot直下の最前面に移動済みなので、D01も
+           最前面に移動してから表示する(でないとS04の下に隠れて見えない) */
+        gx_widget_front_move((GX_WIDGET *)&d01.window, GX_NULL);
         gx_widget_show((GX_WIDGET *)&d01.window);
         return GX_SUCCESS;
 
@@ -179,12 +179,12 @@ static UINT s05_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
         return GX_SUCCESS;
 
     case GX_SIGNAL(ID_S05_EDIT_BUTTON, GX_EVENT_CLICKED):
-        gx_widget_attach(&root, &d01.window);
+        gx_widget_front_move((GX_WIDGET *)&d01.window, GX_NULL);
         gx_widget_show((GX_WIDGET *)&d01.window);
         return GX_SUCCESS;
 
     case GX_SIGNAL(ID_S05_SAVE_BUTTON, GX_EVENT_CLICKED):
-        gx_widget_attach(&root, &d03.window);
+        gx_widget_front_move((GX_WIDGET *)&d03.window, GX_NULL);
         gx_widget_show((GX_WIDGET *)&d03.window);
         return GX_SUCCESS;
 
@@ -253,7 +253,7 @@ static UINT d05_window_event_process(GX_WIDGET *widget, GX_EVENT *event_ptr)
 
     case GX_SIGNAL(ID_D05_SAVE_AS_BUTTON, GX_EVENT_CLICKED):
         gx_widget_hide((GX_WIDGET *)&d05.window);
-        gx_widget_attach(&root, &d03.window);
+        gx_widget_front_move((GX_WIDGET *)&d03.window, GX_NULL);
         gx_widget_show((GX_WIDGET *)&d03.window);
         return GX_SUCCESS;
 
